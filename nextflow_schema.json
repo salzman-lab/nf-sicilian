@@ -59,6 +59,12 @@
                     "description": "Path to FASTA genome file.",
                     "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
                 },
+                "gtf": {
+                    "type": "string"
+                },
+                "star_index": {
+                    "type": "string"
+                },
                 "igenomes_base": {
                     "type": "string",
                     "description": "Directory / URL base for iGenomes references.",
@@ -72,6 +78,42 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                }
+            }
+        },
+        "sicilian_options": {
+            "title": "SICILIAN options",
+            "type": "object",
+            "description": "Options to input for SICILIAN Splicing pipeline",
+            "default": "",
+            "properties": {
+                "barcode_pattern": {
+                    "type": "string",
+                    "default": "CCCCCCCCCCCCCCNNNNNNNNNNNN",
+                    "description": "Barcode pattern to pass to UMI tools for whitelisting"
+                },
+                "tenx": {
+                    "type": "boolean",
+                    "description": "Boolean to indicate the data is from 10x genomics"
+                },
+                "stranded": {
+                    "type": "boolean",
+                    "description": "Boolean to indicate the data is stranded/unstranded"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Domain file",
+                    "default": "False"
+                },
+                "annotator": {
+                    "type": "string",
+                    "description": "Annotator pickle file",
+                    "default": "False"
+                },
+                "exon_bounds": {
+                    "type": "string",
+                    "description": "Exon bounds file",
+                    "default": "False"
                 }
             }
         },
@@ -262,6 +304,9 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
+            "$ref": "#/definitions/sicilian_options"
+        },
+        {
             "$ref": "#/definitions/generic_options"
         },
         {
@@ -270,5 +315,13 @@
         {
             "$ref": "#/definitions/institutional_config_options"
         }
-    ]
+    ],
+    "properties": {
+        "splicesites": {
+            "type": "string"
+        },
+        "enable_conda": {
+            "type": "string"
+        }
+    }
 }
