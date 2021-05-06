@@ -34,10 +34,10 @@ process UMITOOLS_WHITELIST {
     umi_tools \\
         extract \\
         --stdin ${reads[0]} \\
-        --bc-pattern ${barcode_pattern} \\
         -S ${prefix}.umi_extract.fastq.gz \\
         --plot-prefix ${prefix} \\
-        --log2stderr > ${prefix}.umi_whitelist.log
+        $options.args \\
+        > ${prefix}.umi_whitelist.log
     umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
     """
 }

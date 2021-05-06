@@ -87,7 +87,7 @@
             "description": "Options to input for SICILIAN Splicing pipeline",
             "default": "",
             "properties": {
-                "barcode_pattern": {
+                "umitools_bc_pattern": {
                     "type": "string",
                     "default": "CCCCCCCCCCCCCCNNNNNNNNNNNN",
                     "description": "Barcode pattern to pass to UMI tools for whitelisting"

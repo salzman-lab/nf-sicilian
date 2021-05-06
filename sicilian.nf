@@ -44,7 +44,7 @@ if (params.input_paths) {
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 def umitools_whitelist_options = modules['umitools_whitelist']
-umitools_whitelist_options.barcode_pattern.put(params.barcode_pattern, '')
+umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
 
 
 // Import modules
@@ -72,7 +72,7 @@ workflow SICILIAN {
     // ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
     /*
-     * MODULE: Concatenate FastQ files from same sample if required
+     * MODULE: Create a whitelist of UMIs from the data
      */
     UMITOOLS_WHITELIST ( 
         ch_reads,
