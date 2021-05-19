@@ -1,11 +1,10 @@
-
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
 
-process UMITOOLS_WHITELIST {
+process UMITOOLS_EXTRACT {
     tag "$meta.id"
     label "process_low"
     publishDir "${params.outdir}",
@@ -30,14 +29,29 @@ process UMITOOLS_WHITELIST {
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    """
-    umi_tools \\
-        extract \\
-        --stdin ${reads[0]} \\
-        -S ${prefix}.umi_extract.fastq.gz \\
-        --plot-prefix ${prefix} \\
-        $options.args \\
-        > ${prefix}.umi_whitelist.log
-    umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
-    """
+    if (meta.single_end) {
+        """
+        umi_tools \\
+            extract \\
+            -I $reads \\
+            -S ${prefix}.umi_extract.fastq.gz \\
+            $options.args \\
+            > ${prefix}.umi_extract.log
+
+        umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
+        """
+    }  else {
+        """
+        umi_tools \\
+            extract \\
+            -I ${reads[0]} \\
+            --read2-in=${reads[1]} \\
+            -S ${prefix}.umi_extract_1.fastq.gz \\
+            --read2-out=${prefix}.umi_extract_2.fastq.gz \\
+            $options.args \\
+            > ${prefix}.umi_extract.log
+
+        umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
+        """
+    }
 }

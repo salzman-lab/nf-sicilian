@@ -71,9 +71,13 @@ workflow SICILIAN {
     ch_software_versions = Channel.empty()
     // ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
+    // TODO: Add INPUT_CHECK subworkflow to allow for samplesheet input
+    // Example usage: https://github.com/nf-core/rnaseq/blob/0fcbb0ac491ecb8a80ef879c4f3dad5f869021f9/workflows/rnaseq.nf#L250
+    // Subwokflow: https://github.com/nf-core/rnaseq/blob/master/subworkflows/local/input_check.nf
     /*
      * MODULE: Create a whitelist of UMIs from the data
      */
+    ch_reads.view()
     UMITOOLS_WHITELIST ( 
         ch_reads,
     )
@@ -136,54 +140,54 @@ workflow SICILIAN {
     /*
      * MODULE: Pipeline reporting
      */
-    GET_SOFTWARE_VERSIONS ( 
-        ch_software_versions.map { it }.collect()
-    )
+    // GET_SOFTWARE_VERSIONS ( 
+    //     ch_software_versions.map { it }.collect()
+    // )
 
     /*
      * MultiQC
      */
-    if (!params.skip_multiqc) {
-        workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
-        ch_workflow_summary = Channel.value(workflow_summary)
+    // if (!params.skip_multiqc) {
+    //     workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
+    //     ch_workflow_summary = Channel.value(workflow_summary)
 
-        MULTIQC (
-            ch_multiqc_config,
-            ch_multiqc_custom_config.collect().ifEmpty([]),
-            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-            // ch_fail_mapping_multiqc.ifEmpty([]),
-            // ch_fail_strand_multiqc.ifEmpty([]),
-            // FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            // FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            // FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-            // ch_sortmerna_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_star_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_hisat2_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_rsem_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_salmon_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-            // ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-            // ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-            // ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_featurecounts_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_aligner_pca_multiqc.collect().ifEmpty([]),
-            // ch_aligner_clustering_multiqc.collect().ifEmpty([]),
-            // ch_pseudoaligner_pca_multiqc.collect().ifEmpty([]),
-            // ch_pseudoaligner_clustering_multiqc.collect().ifEmpty([]),
-            // ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_qualimap_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_dupradar_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_bamstat_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_inferexperiment_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_innerdistance_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_junctionannotation_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_junctionsaturation_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
-            // ch_readduplication_multiqc.collect{it[1]}.ifEmpty([])
-        )
-        multiqc_report = MULTIQC.out.report.toList()
-    }
+    //     MULTIQC (
+    //         ch_multiqc_config,
+    //         ch_multiqc_custom_config.collect().ifEmpty([]),
+    //         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+    //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+    //         // ch_fail_mapping_multiqc.ifEmpty([]),
+    //         // ch_fail_strand_multiqc.ifEmpty([]),
+    //         // FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+    //         // FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+    //         // FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+    //         // ch_sortmerna_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_star_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_hisat2_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_rsem_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_salmon_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+    //         // ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+    //         // ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+    //         // ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_featurecounts_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_aligner_pca_multiqc.collect().ifEmpty([]),
+    //         // ch_aligner_clustering_multiqc.collect().ifEmpty([]),
+    //         // ch_pseudoaligner_pca_multiqc.collect().ifEmpty([]),
+    //         // ch_pseudoaligner_clustering_multiqc.collect().ifEmpty([]),
+    //         // ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_qualimap_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_dupradar_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_bamstat_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_inferexperiment_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_innerdistance_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_junctionannotation_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_junctionsaturation_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
+    //         // ch_readduplication_multiqc.collect{it[1]}.ifEmpty([])
+    //     )
+    //     multiqc_report = MULTIQC.out.report.toList()
+    // }
 }
 
 ////////////////////////////////////////////////////
