@@ -87,3 +87,5 @@ You can cite the `nf-core` publication as follows:
 In addition, references of tools and data used in this pipeline are as follows:
 
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+
+- [UMI-tools](https://github.com/CGATOxford/UMI-tools)
