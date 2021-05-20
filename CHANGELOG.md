@@ -9,6 +9,8 @@ Initial release of nf-core/sicilian, created with the [nf-core](https://nf-co.re
 
 ### `Added`
 
+- `umi_tools whitelist` for getting real cell barcodes
+
 ### `Fixed`
 
 ### `Dependencies`
