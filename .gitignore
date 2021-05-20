@@ -12,3 +12,4 @@ pipeline_dag.svg*
 execution_trace.txt*
 execution_report.html*
 execution_timeline.html*
+settings.json
