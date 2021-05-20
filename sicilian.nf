@@ -12,13 +12,11 @@ params.summary_params = [:]
 checkPathParamList = [
     params.input, 
     params.multiqc_config,
-    // params.fasta,
     // params.gtf, 
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-// if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
 if (!params.gtf) { exit 1, "No GTF annotation specified!" }
 if (!params.star_index) { exit 1, "No STAR Index annotation specified!" }
 
