@@ -17,20 +17,33 @@ and processes data using the following steps:
 * [MultiQC](#multiqc) - Aggregate report describing results from the whole pipeline
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
-## FastQC
+## UMI-tools
 
-[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your sequenced reads. It provides information about the quality score distribution across your reads, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences.
+[UMI-tools](https://github.com/CGATOxford/UMI-tools) contains tools for dealing with Unique Molecular Identifiers (UMIs)/Random Molecular Tags (RMTs) and single cell RNA-Seq cell barcodes. Two commands are used here: `whitelist` and `extract`.
 
-For further reading and documentation see the [FastQC help pages](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+For further reading and documentation see the [UMI-tools help pages](https://umi-tools.readthedocs.io/en/latest/).
+
+### Whitelist
+
+This command Builds a whitelist of the 'real' cell barcodes.
+This is useful for droplet-based single cell RNA-Seq where the identity of the true cell barcodes is unknown. Whitelist can then be used to filter with extract.
+
+### Extract
+
+Flexible removal of UMI sequences from fastq reads.
+UMIs are removed and appended to the read name. Any other barcode, for example a library barcode, is left on the read. Can also filter reads by quality or against a whitelist (see above)
 
 **Output files:**
 
-* `fastqc/`
-  * `*_fastqc.html`: FastQC report containing quality metrics for your untrimmed raw fastq files.
-* `fastqc/zips/`
-  * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
-
-> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
+* `umitools/whitelist`
+  * `*_whitelist.txt`: Whitelist of true cell barcodes
+* `umitools/logs/`
+  * `*.log`: Logged output of `umi_tools whitelist`
+* `umitools/cell_thresholds/`
+  * `*.tsv`: TODO
+* `umitools/plots/`
+  * `*_cell_barcode_counts.png`: TODO
+  * `*_cell_barcode_knee.png`: TODO
 
 ## MultiQC
 
