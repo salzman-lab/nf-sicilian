@@ -70,7 +70,6 @@ process UMITOOLS_WHITELIST {
         extract \\
         -I ${reads[0]} \\
         -S ${prefix}.umi_extract.fastq.gz \\
-        --plot-prefix ${prefix} \\
         $options.args \\
         > ${prefix}.umi_whitelist.log
     umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
