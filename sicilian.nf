@@ -46,7 +46,8 @@ umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-patt
 
 
 // Import modules
-include { UMITOOLS_WHITELIST      } from './modules/local/umitools/whitelist'     addParams( options: umitools_whitelist_options )
+include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
+include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
 
 
 ////////////////////////////////////////////////////
@@ -78,9 +79,19 @@ workflow SICILIAN {
     UMITOOLS_WHITELIST ( 
         ch_reads,
     )
-    println(UMITOOLS_WHITELIST)
     ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
+    ch_software_versions
+        .map { it -> if (it) [ it.baseName, it ] }
+        .groupTuple()
+        .map { it[1][0] }
+        .flatten()
+        .collect()
+        .set { ch_software_versions }
+
+    GET_SOFTWARE_VERSIONS (
+        ch_software_versions.map { it }.collect()
+    )
 /// STAR needs  --sjdbGTFfile {} .format(gtf_file) option
 
 
