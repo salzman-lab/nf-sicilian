@@ -77,10 +77,10 @@ workflow SICILIAN {
     /*
      * MODULE: Create a whitelist of UMIs from the data
      */
-    ch_reads.view()
     UMITOOLS_WHITELIST ( 
         ch_reads,
     )
+    println(UMITOOLS_WHITELIST)
     ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
 /// STAR needs  --sjdbGTFfile {} .format(gtf_file) option

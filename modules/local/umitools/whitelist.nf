@@ -48,11 +48,12 @@ process UMITOOLS_WHITELIST {
     tuple val(sample_id), path(reads)
 
     output:
-    // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(sample_id), path("*.fastq.gz"), emit: reads
-    tuple val(sample_id), path("*.log")     , emit: log
-    // TODO nf-core: List additional required output channels/values here
-    path  "*.version.txt"              , emit: version
+    tuple val(sample_id), path("*.whitelist.txt")          , emit: whitelist
+    tuple val(sample_id), path("*.log")                    , emit: log
+    tuple val(sample_id), path("*barcode_counts.png")      , emit: barcode_counts_png
+    tuple val(sample_id), path("*barcode_knee.png")        , emit: barcode_knee_png
+    tuple val(sample_id), path("*cell_thresholds.tsv")     , emit: cell_thresholds
+    path  "*.version.txt"                                  , emit: version
 
     script:
     def software = getSoftwareName(task.process)
@@ -67,10 +68,11 @@ process UMITOOLS_WHITELIST {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
     umi_tools \\
-        extract \\
+        whitelist \\
         -I ${reads[0]} \\
-        -S ${prefix}.umi_extract.fastq.gz \\
+        -S ${prefix}.whitelist.txt \\
         $options.args \\
+        --plot-prefix=${prefix} \\
         > ${prefix}.umi_whitelist.log
     umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
     """
