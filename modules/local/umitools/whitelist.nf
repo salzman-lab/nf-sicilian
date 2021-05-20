@@ -68,7 +68,7 @@ process UMITOOLS_WHITELIST {
     """
     umi_tools \\
         extract \\
-        --stdin ${reads[0]} \\
+        -I ${reads[0]} \\
         -S ${prefix}.umi_extract.fastq.gz \\
         --plot-prefix ${prefix} \\
         $options.args \\
