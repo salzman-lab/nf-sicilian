@@ -17,7 +17,7 @@ and processes data using the following steps:
 * [MultiQC](#multiqc) - Aggregate report describing results from the whole pipeline
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
-## UMI-tools:
+## UMI-tools
 
 [UMI-tools](https://github.com/CGATOxford/UMI-tools) contains tools for dealing with Unique Molecular Identifiers (UMIs)/Random Molecular Tags (RMTs) and single cell RNA-Seq cell barcodes. Two commands are used here: `whitelist` and `extract`.
 
@@ -44,8 +44,6 @@ UMIs are removed and appended to the read name. Any other barcode, for example a
 * `umitools/plots/`
   * `*_cell_barcode_counts.png`: TODO
   * `*_cell_barcode_knee.png`: TODO
-
-
 
 ## MultiQC
 
