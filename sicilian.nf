@@ -50,9 +50,9 @@ umitools_extract_options.args  += params.umitools_bc_pattern     ? Utils.joinMod
 if (params.save_umi_intermeds)  { umitools_extract_options.publish_files.put('fastq.gz','') }
 
 // Import modules
-include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
-include { UMITOOLS_EXTRACT      } from   './modules/nf-core/software/umitools/extract'        addParams( options: umitools_extract_options )
-include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
+include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'            addParams( options: umitools_whitelist_options )
+include { UMITOOLS_EXTRACT        } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
+include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'         addParams( options: [publish_files : ['csv':'']]                      )
 
 
 ////////////////////////////////////////////////////
@@ -86,11 +86,8 @@ workflow SICILIAN {
     )
     ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
-    ch_reads
-        .map{ it -> create_fastq_channels(it, params.single_end) }
-        .set { ch_reads_extract_meta }
 
-    UMITOOLS_EXTRACT ( ch_reads_extract_meta ).reads.set { umi_reads }
+    UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
     ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
 
     ch_software_versions
@@ -100,6 +97,7 @@ workflow SICILIAN {
         .flatten()
         .collect()
         .set { ch_software_versions }
+
 
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
