@@ -16,10 +16,6 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-// Check mandatory parameters
-if (!params.gtf) { exit 1, "No GTF annotation specified!" }
-if (!params.star_index) { exit 1, "No STAR Index annotation specified!" }
-
 /*
  * Create a channel for input read files
  */
@@ -44,10 +40,21 @@ def modules = params.modules.clone()
 def umitools_whitelist_options = modules['umitools_whitelist']
 umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
 
+def star_genomegenerate_options = modules['star_genomegenerate']
+if (!params.save_reference)     { star_genomegenerate_options['publish_files'] = false }
+
+def gffread_options         = modules['gffread']
+if (!params.save_reference) { gffread_options['publish_files'] = false }
+
+def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
+def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
 // Import modules
-include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
-include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
+include { SICILIAN_CREATEANNOTATOR } from './modules/local/sicilian_createannotator.nf'          addParams( options: umitools_whitelist_options )
+include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
+include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
+include { PREPARE_GENOME           } from './subworkflows/local/PREPARE_GENOME.nf'          addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options )
+include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: umitools_whitelist_options )
 
 
 ////////////////////////////////////////////////////
@@ -88,6 +95,21 @@ workflow SICILIAN {
         .flatten()
         .collect()
         .set { ch_software_versions }
+
+    //
+    // SUBWORKFLOW: Uncompress and prepare reference genome files
+    //
+    PREPARE_GENOME ()
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
+
+    SICILIAN_CREATEANNOTATOR ( PREPARE_GENOME.out.gtf )
+
+
+    STAR_ALIGN (
+        ch_reads,
+        PREPARE_GENOME.out.star_index,
+        PREPARE_GENOME.out.gtf
+    )
 
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()

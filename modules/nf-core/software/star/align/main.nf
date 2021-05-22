@@ -5,41 +5,41 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process STAR_ALIGN {
-    tag "$meta.id"
+    tag "$sample_id"
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process),  meta:[:], publish_by_meta:[]) }
 
     // Note: 2.7X indices incompatible with AWS iGenomes.
-    conda (params.enable_conda ? 'bioconda::star=2.6.1d' : null)
+    conda (params.enable_conda ? 'bioconda::star=2.7.5c' : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container 'https://depot.galaxyproject.org/singularity/star:2.6.1d--0'
+        container 'https://depot.galaxyproject.org/singularity/star:2.7.5c--0'
     } else {
-        container 'quay.io/biocontainers/star:2.6.1d--0'
+        container 'quay.io/biocontainers/star:2.7.5c--0'
     }
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(sample_id), path(reads)
     path  index
     path  gtf
 
     output:
-    tuple val(meta), path('*d.out.bam')       , emit: bam
-    tuple val(meta), path('*Log.final.out')   , emit: log_final
-    tuple val(meta), path('*Log.out')         , emit: log_out
-    tuple val(meta), path('*Log.progress.out'), emit: log_progress
+    tuple val(sample_id), path('*d.out.bam')       , emit: bam
+    tuple val(sample_id), path('*Log.final.out')   , emit: log_final
+    tuple val(sample_id), path('*Log.out')         , emit: log_out
+    tuple val(sample_id), path('*Log.progress.out'), emit: log_progress
     path  '*.version.txt'                     , emit: version
 
-    tuple val(meta), path('*sortedByCoord.out.bam')  , optional:true, emit: bam_sorted
-    tuple val(meta), path('*toTranscriptome.out.bam'), optional:true, emit: bam_transcript
-    tuple val(meta), path('*Aligned.unsort.out.bam') , optional:true, emit: bam_unsorted
-    tuple val(meta), path('*fastq.gz')               , optional:true, emit: fastq
-    tuple val(meta), path('*.tab')                   , optional:true, emit: tab
+    tuple val(sample_id), path('*sortedByCoord.out.bam')  , optional:true, emit: bam_sorted
+    tuple val(sample_id), path('*toTranscriptome.out.bam'), optional:true, emit: bam_transcript
+    tuple val(sample_id), path('*Aligned.unsort.out.bam') , optional:true, emit: bam_unsorted
+    tuple val(sample_id), path('*fastq.gz')               , optional:true, emit: fastq
+    tuple val(sample_id), path('*.tab')                   , optional:true, emit: tab
 
     script:
     def software   = getSoftwareName(task.process)
-    def prefix     = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix     = options.suffix ? "${sample_id}${options.suffix}" : "${sample_id}"
     def ignore_gtf = params.star_ignore_sjdbgtf ? '' : "--sjdbGTFfile $gtf"
     def seq_center = params.seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$params.seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
     def out_sam_type = (options.args.contains('--outSAMtype')) ? '' : '--outSAMtype BAM Unsorted'
