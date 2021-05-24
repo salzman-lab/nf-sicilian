@@ -155,7 +155,7 @@ workflow SICILIAN {
     )
 
     CONSOLIDATE(
-        GLM.out.
+        GLM.out.glm_output.collect()
     )
 
     GET_SOFTWARE_VERSIONS (
