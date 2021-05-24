@@ -7,7 +7,6 @@ import math
 import numpy as np
 import os
 import pandas as pd
-import pyarrow
 import pickle
 import pysam
 import re
