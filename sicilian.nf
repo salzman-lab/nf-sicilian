@@ -106,25 +106,20 @@ workflow SICILIAN {
     // TODO: Add INPUT_CHECK subworkflow to allow for samplesheet input
     // Example usage: https://github.com/nf-core/rnaseq/blob/0fcbb0ac491ecb8a80ef879c4f3dad5f869021f9/workflows/rnaseq.nf#L250
     // Subwokflow: https://github.com/nf-core/rnaseq/blob/master/subworkflows/local/input_check.nf
-    /*
-     * MODULE: Create a whitelist of UMIs from the data
-     */
-    UMITOOLS_WHITELIST ( 
-        ch_reads,
-    )
-    ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
+
+    if (!params.skip_umitools) {
+        /*
+        * MODULE: Create a whitelist of UMIs from the data
+        */
+        UMITOOLS_WHITELIST ( 
+            ch_reads,
+        )
+        ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
 
-    UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
-    ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
-
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
+        UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
+        ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
+    }
 
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
@@ -157,6 +152,15 @@ workflow SICILIAN {
     CONSOLIDATE(
         GLM.out.glm_output.collect()
     )
+
+
+    ch_software_versions
+        .map { it -> if (it) [ it.baseName, it ] }
+        .groupTuple()
+        .map { it[1][0] }
+        .flatten()
+        .collect()
+        .set { ch_software_versions }
 
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
