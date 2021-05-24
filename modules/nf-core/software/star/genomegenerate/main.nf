@@ -12,11 +12,11 @@ process STAR_GENOMEGENERATE {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'index', meta:[:], publish_by_meta:[]) }
 
     // Note: 2.7X indices incompatible with AWS iGenomes.
-    conda (params.enable_conda ? "bioconda::star=2.7.5c bioconda::samtools=1.10 conda-forge::gawk=5.1.0" : null)
+    conda (params.enable_conda ? "bioconda::star=2.7.5a bioconda::samtools=1.10 conda-forge::gawk=5.1.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/mulled-v2-1fa26d1ce03c295fe2fdcf85831a92fbcbd7e8c2:59cdd445419f14abac76b31dd0d71217994cbcc9-0"
+        container "https://depot.galaxyproject.org/singularity/star:2.7.5a--0"
     } else {
-        container "quay.io/biocontainers/mulled-v2-1fa26d1ce03c295fe2fdcf85831a92fbcbd7e8c2:59cdd445419f14abac76b31dd0d71217994cbcc9-0"
+        container "docker.io/czbiohub/sicilian:dev"
     }
 
     input:
