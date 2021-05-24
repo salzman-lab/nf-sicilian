@@ -13,8 +13,7 @@ import re
 import time
 import sys
 
-# sys.path.insert(1, '/scratch/PI/horence/JuliaO/single_cell/STAR_wrapper/scripts/')
-import annotator
+
 from light_utils import *
 
 
