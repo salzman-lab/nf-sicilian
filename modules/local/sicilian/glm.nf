@@ -22,7 +22,8 @@ options        = initOptions(params.options)
 
 process GLM {
     tag "$splices"
-    label 'process_high'
+    label 'process_medium'
+    label 'cpu_2'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -66,10 +67,10 @@ process GLM {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    outdir = '.'
-    single = if params.single_end ? '1' : '0'
-    tenx = if params.tenx ? '1' ? '0'
-    stranded if params.stranded ? '1' : '0'
+    def outdir = '.'
+    def single = params.single_end ? '1' : '0'
+    def tenx = params.tenx ? '1' : '0'
+    def stranded = params.stranded ? '1' : '0'
     """
     GLM_script_light.R \\
         $outdir \\
