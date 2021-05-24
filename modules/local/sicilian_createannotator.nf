@@ -49,7 +49,7 @@ process SICILIAN_CREATEANNOTATOR {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*gene_names.pkl", emit: gene_names
+    path "*gene_names.pkl", emit: annotator
     path "*splices.pkl", emit: splices
     path "*exon_bounds.pkl", emit: exon_bounds
     // TODO nf-core: List additional required output channels/values here

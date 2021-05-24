@@ -67,26 +67,27 @@ workflow PREPARE_GENOME {
         ch_star_version = STAR_GENOMEGENERATE.out.version
     }
 
-
+    //
+    // Prepare pickle files for SICILIAN
     //
     if (!params.annotator) {
         SICILIAN_CREATEANNOTATOR ( ch_gtf )
-        ch_sicilian_gene_names  = SICILIAN_CREATEANNOTATOR.out.gene_names
+        ch_sicilian_annotator  = SICILIAN_CREATEANNOTATOR.out.annotator
         ch_sicilian_splices     = SICILIAN_CREATEANNOTATOR.out.splices
         ch_sicilian_exon_bounds = SICILIAN_CREATEANNOTATOR.out.exon_bounds
     } else {
-        ch_sicilian_gene_names  = file(params.annotator)
-        ch_sicilian_splices     = file(params.splicesites)
+        ch_sicilian_annotator  = file(params.annotator)
+        ch_sicilian_splices     = file(params.splices)
         ch_sicilian_exon_bounds = file(params.exon_bounds)
     }
 
     emit:
-    fasta            = ch_fasta            // path: genome.fasta
-    gtf              = ch_gtf              // path: genome.gtf
-    star_index       = ch_star_index       // path: star/index/
-    sicilian_gene_names = ch_sicilian_gene_names
-    sicilian_splices = ch_sicilian_splices
-    sicilian_exon_bounds = ch_sicilian_exon_bounds
-    star_version     = ch_star_version     // path: *.version.txt
-    gffread_version  = ch_gffread_version  // path: *.version.txt
+    fasta                 = ch_fasta            // path: genome.fasta
+    gtf                   = ch_gtf              // path: genome.gtf
+    star_index            = ch_star_index       // path: star/index/
+    ch_sicilian_annotator = ch_sicilian_annotator
+    sicilian_splices      = ch_sicilian_splices
+    sicilian_exon_bounds  = ch_sicilian_exon_bounds
+    star_version          = ch_star_version     // path: *.version.txt
+    gffread_version       = ch_gffread_version  // path: *.version.txt
 }
