@@ -45,7 +45,13 @@ process SICILIAN_PROCESSCI10X {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path bam
+    path glm_consolidated
+    path reads_per_gene   // collected across all files
+    path class_inputs    // collected across all files
+    path gtf
+    path exon_bounds
+    path splices
+
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
@@ -64,13 +70,15 @@ process SICILIAN_PROCESSCI10X {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    def output_path = './'
+    def run_name = './'
     """
-    samtools \\
-        sort \\
-        $options.args \\
-        -@ $task.cpus \\
-        $bam
-
+    Process_CI_10x.py \\
+        -d $output_path \\
+        -o $run_name \\
+        -g $gtf \\
+        -e $exon_bounds \\
+        -s $splices
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
