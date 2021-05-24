@@ -11,8 +11,8 @@ params.summary_params = [:]
 // Check input path parameters to see if they exist
 checkPathParamList = [
     params.input, 
-    params.multiqc_config,
-    // params.gtf, 
+    // params.multiqc_config,
+    params.gtf, 
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
@@ -33,6 +33,11 @@ if (params.input_paths) {
     ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
 }
+
+//
+// Create channel for domain file
+//
+ch_domain = file(params.domain, checkIfExists: true)
 
 
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
@@ -124,10 +129,16 @@ workflow SICILIAN {
         PREPARE_GENOME.out.gtf
     )
 
-    SICILIAN_CLASSINPUT(
+    SICILIAN_CLASSINPUT (
         STAR_ALIGN.out.bam,
         PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.ch_sicilian_annotator,
+        PREPARE_GENOME.out.sicilian_annotator,
+    )
+
+    SICILIAN_GLM (
+        ch_domain,
+        PREPARE_GENOME.out.sicilian_exon_bounds,
+        PREPARE_GENOME.out.sicilian_splices
     )
 
     GET_SOFTWARE_VERSIONS (
