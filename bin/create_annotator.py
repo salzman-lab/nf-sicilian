@@ -109,8 +109,8 @@ def main():
 
     args = get_args()
 
-    # annotator_path = "{}annotators/pyensembl_{}.pkl".format(wrapper_path, args.assembly)
-    annotator_path = "{}_gene_names.pkl".format(wrapper_path, args.assembly)
+    # annotator_path = "{}annotators/pyensembl_{}.pkl".format(args.assembly)
+    annotator_path = "{}_gene_names.pkl".format(args.assembly)
     print(annotator_path)
 
     gtf_df = get_gtf(args.gtf_path)
@@ -123,16 +123,16 @@ def main():
                 "wb",
             ),
         )
-        print("{}_exon_bounds.pkl".format(wrapper_path, args.assembly))
+        print("{}_exon_bounds.pkl".format(args.assembly))
 
     if save_splices:
         splices = get_splices(gtf_df)
         pickle.dump(
             splices,
-            open("{}_splices.pkl".format(wrapper_path, args.assembly), "wb"),
+            open("{}_splices.pkl".format(args.assembly), "wb"),
         )
 
-        print("{}_splices.pkl".format(wrapper_path, args.assembly))
+        print("{}_splices.pkl".format(args.assembly))
     #  if os.path.exists(annotator_path):
     #    ann = pickle.load(open(annotator_path, "rb"))
     #  else:
