@@ -5,11 +5,11 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process UMITOOLS_EXTRACT {
-    tag "$meta.id"
+    tag "$sample_id"
     label "process_low"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::umi_tools=1.1.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -19,39 +19,29 @@ process UMITOOLS_EXTRACT {
     }
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(sample_id), path(reads)
+    tuple val(sample_id), path(whitelist)
 
     output:
-    tuple val(meta), path("*.fastq.gz"), emit: reads
-    tuple val(meta), path("*.log")     , emit: log
+    tuple val(sample_id), path("*.fastq.gz"), emit: reads
+    tuple val(sample_id), path("*.log")     , emit: log
     path  "*.version.txt"              , emit: version
 
     script:
     def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    if (meta.single_end) {
-        """
-        umi_tools \\
-            extract \\
-            -I $reads \\
-            -S ${prefix}.umi_extract.fastq.gz \\
-            $options.args \\
-            > ${prefix}.umi_extract.log
+    def prefix   = options.suffix ? "${sample_id}${options.suffix}" : "${sample_id}"
+    // This is only run on paired-end 10x data which 
+    """
+    umi_tools \\
+        extract \\
+        -I ${reads[0]} \\
+        --read2-in=${reads[1]} \\
+        -S ${prefix}.umi_extract_1.fastq.gz \\
+        --read2-out=${prefix}.umi_extract_2.fastq.gz \\
+        --whitelist ${whitelist} \\
+        $options.args \\
+        > ${prefix}.umi_extract.log
 
-        umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
-        """
-    }  else {
-        """
-        umi_tools \\
-            extract \\
-            -I ${reads[0]} \\
-            --read2-in=${reads[1]} \\
-            -S ${prefix}.umi_extract_1.fastq.gz \\
-            --read2-out=${prefix}.umi_extract_2.fastq.gz \\
-            $options.args \\
-            > ${prefix}.umi_extract.log
-
-        umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
-        """
-    }
+    umi_tools --version | sed -e "s/UMI-tools version: //g" > ${software}.version.txt
+    """
 }

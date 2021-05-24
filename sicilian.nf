@@ -44,10 +44,15 @@ def modules = params.modules.clone()
 def umitools_whitelist_options = modules['umitools_whitelist']
 umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
 
+def umitools_extract_options    = modules['umitools_extract']
+umitools_extract_options.args  += params.umitools_extract_method ? Utils.joinModuleArgs(["--extract-method=${params.umitools_extract_method}"]) : ''
+umitools_extract_options.args  += params.umitools_bc_pattern     ? Utils.joinModuleArgs(["--bc-pattern='${params.umitools_bc_pattern}'"])       : ''
+if (params.save_umi_intermeds)  { umitools_extract_options.publish_files.put('fastq.gz','') }
 
 // Import modules
-include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
-include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
+include { UMITOOLS_WHITELIST      } from './modules/local/umitools_whitelist'            addParams( options: umitools_whitelist_options )
+include { UMITOOLS_EXTRACT        } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
+include { GET_SOFTWARE_VERSIONS   } from './modules/local/get_software_versions'         addParams( options: [publish_files : ['csv':'']]                      )
 
 
 ////////////////////////////////////////////////////
@@ -81,6 +86,10 @@ workflow SICILIAN {
     )
     ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
+
+    UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
+    ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
+
     ch_software_versions
         .map { it -> if (it) [ it.baseName, it ] }
         .groupTuple()
@@ -88,6 +97,7 @@ workflow SICILIAN {
         .flatten()
         .collect()
         .set { ch_software_versions }
+
 
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
@@ -211,3 +221,26 @@ workflow.onComplete {
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
+
+
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_fastq_channels(Tuple row, Boolean single_end) {
+    def meta = [:]
+    meta.id           = row[0]
+    meta.single_end   = single_end.toBoolean()
+    meta.strandedness = row.strandedness
+
+    def array = []
+    if (!file(row.fastq_1).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
+    }
+    if (meta.single_end) {
+        array = [ meta, [ file(row.fastq_1) ] ]
+    } else {
+        if (!file(row.fastq_2).exists()) {
+            exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
+        }
+        array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
+    }
+    return array
+}
