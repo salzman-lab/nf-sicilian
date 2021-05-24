@@ -34,6 +34,8 @@ if (params.input_paths) {
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
 }
 
+ch_reads.dump( tag: 'ch_reads' )
+ch_reads.view()
 //
 // Create channel for domain file
 //
@@ -57,9 +59,12 @@ def gffread_options         = modules['gffread']
 if (!params.save_reference) { gffread_options['publish_files'] = false }
 
 def star_align_options            = modules['star_align']
+def sicilian_createannotator_options            = modules['sicilian_createannotator']
 
-def sicilian_classiput_options    = modules['sicilian_classiput']
-sicilian_classiput_options.args   += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
+def sicilian_classinput_options    = modules['sicilian_classinput']
+sicilian_classinput_options.args   += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
+
+def sicilian_glm_options    = modules['sicilian_glm']
 
 def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
@@ -68,9 +73,10 @@ def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
 include { UMITOOLS_EXTRACT        } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
-include { PREPARE_GENOME           } from './subworkflows/local/PREPARE_GENOME.nf'          addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options )
+include { PREPARE_GENOME           } from './subworkflows/local/PREPARE_GENOME.nf'          addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options, sicilian_createannotator_options: sicilian_createannotator_options )
 include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
-include { SICILIAN_CLASSINPUT       } from './modules/local/sicilian_classinput.nf'          addParams( options: sicilian_classiput_options )
+include { SICILIAN_CLASSINPUT       } from './modules/local/sicilian_classinput.nf'          addParams( options: sicilian_classinput_options )
+// include { SICILIAN_GLM             } from './modules/local/sicilian_glm.nf'          addParams( options: sicilian_glm_options )
 
 
 ////////////////////////////////////////////////////
@@ -126,7 +132,7 @@ workflow SICILIAN {
     STAR_ALIGN (
         UMITOOLS_EXTRACT.out.reads,
         PREPARE_GENOME.out.star_index,
-        PREPARE_GENOME.out.gtf
+        PREPARE_GENOME.out.gtf,
     )
 
     SICILIAN_CLASSINPUT (
@@ -135,11 +141,11 @@ workflow SICILIAN {
         PREPARE_GENOME.out.sicilian_annotator,
     )
 
-    SICILIAN_GLM (
-        ch_domain,
-        PREPARE_GENOME.out.sicilian_exon_bounds,
-        PREPARE_GENOME.out.sicilian_splices
-    )
+    // SICILIAN_GLM (
+    //     ch_domain,
+    //     PREPARE_GENOME.out.sicilian_exon_bounds,
+    //     PREPARE_GENOME.out.sicilian_splices,
+    // )
 
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
