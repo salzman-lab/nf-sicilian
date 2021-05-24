@@ -46,7 +46,6 @@ def umitools_whitelist_options = modules['umitools_whitelist']
 umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
 
 def umitools_extract_options    = modules['umitools_extract']
-umitools_extract_options.args  += params.umitools_extract_method ? Utils.joinModuleArgs(["--extract-method=${params.umitools_extract_method}"]) : ''
 umitools_extract_options.args  += params.umitools_bc_pattern     ? Utils.joinModuleArgs(["--bc-pattern='${params.umitools_bc_pattern}'"])       : ''
 if (params.save_umi_intermeds)  { umitools_extract_options.publish_files.put('fastq.gz','') }
 
