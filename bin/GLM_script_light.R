@@ -906,10 +906,10 @@ if ((length(args)==6) | (length(args)==8)){
 write.table(sicilian_splicing_called_junctions, paste(directory,"sicilian_called_splice_juncs.tsv", sep = ""), row.names = FALSE, quote = FALSE, sep = "\t")
 
 # use this for annotating the exon boudnaries in the called junctions (this function will be run only when exon and splice annotation pickle files have been provided)
-if ((length(args)==7) | (length(args)==8)){
-  exon_pickle = args[length(args)-1]
-  splice_pickle = args[length(args)]
-  script_directory = getwd()
-  system(paste("python3 ",script_directory,"/scripts/ann_splices.py -i ",directory,"sicilian_called_splice_juncs.tsv", " -o ",directory,"sicilian_called_splice_juncs.tsv"," -e ",exon_pickle, " -s ", splice_pickle,sep = ""))
-}
+# if ((length(args)==7) | (length(args)==8)){
+#   exon_pickle = args[length(args)-1]
+#   splice_pickle = args[length(args)]
+#   script_directory = getwd()
+#   system(paste("python3 ",script_directory,"/scripts/ann_splices.py -i ",directory,"sicilian_called_splice_juncs.tsv", " -o ",directory,"sicilian_called_splice_juncs.tsv"," -e ",exon_pickle, " -s ", splice_pickle,sep = ""))
+# }
 toc()

@@ -55,7 +55,8 @@ process GLM {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*.bam", emit: bam
+    path "*GLM_output.txt", emit: glm_output
+    path "*class_input.tsv", emit: class_input
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -83,6 +84,13 @@ process GLM {
         $domain \\
         $exon_bounds \\
         $splices
+    ann_splices.py \\
+        ${outdir} \\
+        -i sicilian_called_splice_juncs.tsv \\
+        -o sicilian_called_splice_juncs.tsv \\
+        -e ${exon_bounds} \\
+        -s ${splices}
+
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
