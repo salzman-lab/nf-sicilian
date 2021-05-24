@@ -34,8 +34,6 @@ if (params.input_paths) {
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
 }
 
-ch_reads.dump( tag: 'ch_reads' )
-ch_reads.view()
 //
 // Create channel for domain file
 //
