@@ -35,7 +35,10 @@ process STAR_ALIGN {
     tuple val(sample_id), path('*toTranscriptome.out.bam'), optional:true, emit: bam_transcript
     tuple val(sample_id), path('*Aligned.unsort.out.bam') , optional:true, emit: bam_unsorted
     tuple val(sample_id), path('*fastq.gz')               , optional:true, emit: fastq
-    tuple val(sample_id), path('*.tab')                   , optional:true, emit: tab
+    tuple val(sample_id), path('*SJ.out.tab')             , optional:true, emit: sj_out_tab
+    tuple val(sample_id), path('*Chimeric.out.junction')  , optional:true, emit: chimeric_out_junction
+    tuple val(sample_id), path('*ReadsPerGene.out.tab')   , optional:true, emit: reads_per_gene
+
 
     script:
     def software   = getSoftwareName(task.process)
