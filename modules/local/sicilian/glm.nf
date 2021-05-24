@@ -49,6 +49,9 @@ process GLM {
     path domain
     path exon_bounds
     path splices
+    path sj_out_tab
+    path chimeric_out_junction
+    path reads_per_gene
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels

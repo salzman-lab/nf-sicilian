@@ -147,6 +147,9 @@ workflow SICILIAN {
         ch_domain,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
+        STAR_ALIGN.out.sj_out_tab,
+        STAR_ALIGN.out.chimeric_out_junction,
+        STAR_ALIGN.out.reads_per_gene,
     )
 
     GET_SOFTWARE_VERSIONS (
