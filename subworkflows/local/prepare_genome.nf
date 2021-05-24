@@ -72,7 +72,7 @@ workflow PREPARE_GENOME {
     //
     if (!params.annotator) {
         SICILIAN_CREATEANNOTATOR ( ch_gtf )
-        ch_sicilian_annotator  = SICILIAN_CREATEANNOTATOR.out.annotator
+        ch_sicilian_annotator   = SICILIAN_CREATEANNOTATOR.out.annotator
         ch_sicilian_splices     = SICILIAN_CREATEANNOTATOR.out.splices
         ch_sicilian_exon_bounds = SICILIAN_CREATEANNOTATOR.out.exon_bounds
     } else {
