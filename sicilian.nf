@@ -50,7 +50,6 @@ def publish_genome_options = params.save_reference ? [publish_dir: 'genome']    
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
 // Import modules
-include { SICILIAN_CREATEANNOTATOR } from './modules/local/sicilian_createannotator.nf'          addParams( options: umitools_whitelist_options )
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
 include { PREPARE_GENOME           } from './subworkflows/local/PREPARE_GENOME.nf'          addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options )
@@ -100,10 +99,8 @@ workflow SICILIAN {
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
     PREPARE_GENOME ()
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.star_version.ifEmpty(null))
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
-
-    SICILIAN_CREATEANNOTATOR ( PREPARE_GENOME.out.gtf )
-
 
     STAR_ALIGN (
         ch_reads,
