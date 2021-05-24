@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_CONSOLIDATE {
+process CONSOLIDATE {
     tag '$bam'
     label 'process_medium'
     publishDir "${params.outdir}",

@@ -20,9 +20,9 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_CREATEANNOTATOR {
-    tag "${gtf}"
-    label 'process_low'
+process GLM {
+    tag "$splices"
+    label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -31,11 +31,11 @@ process SICILIAN_CREATEANNOTATOR {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "bioconda::pybedtools=0.8.2" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-genomicalignments conda-forge::r-tidyverse conda-forge::glmnet conda-forge::r-tictoc conda-forge::r-optimalcutpoints conda-forge::r-data.table" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/pybedtools:0.8.2--py27h6a42192_1"
+        container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
     } else {
-        container "quay.io/biocontainers/pybedtools:0.8.2--py27h6a42192_1"
+        container "docker.io/czbiohub/sicilian:dev"
     }
 
     input:
@@ -45,13 +45,13 @@ process SICILIAN_CREATEANNOTATOR {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path gtf
+    path domain
+    path exon_bounds
+    path splices
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*gene_names.pkl", emit: annotator
-    path "*splices.pkl", emit: splices
-    path "*exon_bounds.pkl", emit: exon_bounds
+    path "*.bam", emit: bam
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -66,8 +66,19 @@ process SICILIAN_CREATEANNOTATOR {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    outdir = '.'
+    single = if params.single_end ? '1' : '0'
+    tenx = if params.tenx ? '1' ? '0'
+    stranded if params.stranded ? '1' : '0'
     """
-    create_annotator.py -g ${gtf} -a ${gtf.getSimpleName()}
-    python -c 'import pandas as pd; print(pd.__version__)' > pandas.version.txt
+    GLM_script_light.R \\
+        $outdir \\
+        $single \\
+        $tenx \\
+        $stranded \\
+        $domain \\
+        $exon_bounds \\
+        $splices
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

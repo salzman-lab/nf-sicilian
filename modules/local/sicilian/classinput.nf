@@ -20,9 +20,12 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_GLM {
-    tag '$bam'
+process CLASSINPUT {
+    tag "$sample_id"
     label 'process_high'
+    label 'process_super_highmem'
+    label 'process_long'
+    label 'cpu_2'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -31,7 +34,7 @@ process SICILIAN_GLM {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "bioconda::bioconductor-genomicalignments conda-forge::r-tidyverse conda-forge::glmnet conda-forge::r-tictoc conda-forge::r-optimalcutpoints conda-forge::r-data.table" : null)
+    conda (params.enable_conda ? "YOUR-TOOL-HERE" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
     } else {
@@ -45,13 +48,13 @@ process SICILIAN_GLM {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path domain
-    path exon_bounds
-    path splices
+    tuple val(sample_id), path(bam)
+    path gtf
+    path annotator
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*.bam", emit: bam
+    // path "*.bam", emit: bam
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -66,19 +69,14 @@ process SICILIAN_GLM {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    outdir = '.'
-    single = if params.single_end ? '1' : '0'
-    tenx = if params.tenx ? '1' ? '0'
-    stranded if params.stranded ? '1' : '0'
     """
-    GLM_script_light.R \\
-        $outdir \\
-        $single \\
-        $tenx \\
-        $stranded \\
-        $domain \\
-        $exon_bounds \\
-        $splices
+    light_class_input.py \\
+        --outpath . \\
+        --gtf ${gtf} \\
+        --annotator ${annotator} \\
+        --bams ${bam} \\
+        --stranded_library \\
+        ${options.args}
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

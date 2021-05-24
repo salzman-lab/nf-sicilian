@@ -20,12 +20,9 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_CLASSINPUT {
-    tag "$sample_id"
-    label 'process_high'
-    label 'process_super_highmem'
-    label 'process_long'
-    label 'cpu_2'
+process CREATEANNOTATOR {
+    tag "${gtf}"
+    label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -34,11 +31,11 @@ process SICILIAN_CLASSINPUT {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "YOUR-TOOL-HERE" : null)
+    conda (params.enable_conda ? "bioconda::pybedtools=0.8.2" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
+        container "https://depot.galaxyproject.org/singularity/pybedtools:0.8.2--py27h6a42192_1"
     } else {
-        container "docker.io/czbiohub/sicilian:dev"
+        container "quay.io/biocontainers/pybedtools:0.8.2--py27h6a42192_1"
     }
 
     input:
@@ -48,13 +45,13 @@ process SICILIAN_CLASSINPUT {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(sample_id), path(bam)
     path gtf
-    path annotator
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    // path "*.bam", emit: bam
+    path "*gene_names.pkl", emit: annotator
+    path "*splices.pkl", emit: splices
+    path "*exon_bounds.pkl", emit: exon_bounds
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -70,13 +67,7 @@ process SICILIAN_CLASSINPUT {
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
-    light_class_input.py \\
-        --outpath . \\
-        --gtf ${gtf} \\
-        --annotator ${annotator} \\
-        --bams ${bam} \\
-        --stranded_library \\
-        ${options.args}
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    create_annotator.py -g ${gtf} -a ${gtf.getSimpleName()}
+    python -c 'import pandas as pd; print(pd.__version__)' > pandas.version.txt
     """
 }
