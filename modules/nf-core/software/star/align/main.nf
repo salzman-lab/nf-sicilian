@@ -44,10 +44,11 @@ process STAR_ALIGN {
     def seq_center = params.seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$params.seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
     def out_sam_type = (options.args.contains('--outSAMtype')) ? '' : '--outSAMtype BAM Unsorted'
     def mv_unsorted_bam = (options.args.contains('--outSAMtype BAM Unsorted SortedByCoordinate')) ? "mv ${prefix}.Aligned.out.bam ${prefix}.Aligned.unsort.out.bam" : ''
+    def reads_v2 = params.tenx ? "${reads[1]}" : "${reads}"
     """
     STAR \\
         --genomeDir $index \\
-        --readFilesIn $reads  \\
+        --readFilesIn $reads_v2  \\
         --runThreadN $task.cpus \\
         --outFileNamePrefix $prefix. \\
         $out_sam_type \\
