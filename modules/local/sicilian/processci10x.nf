@@ -47,7 +47,7 @@ process SICILIAN_PROCESSCI10X {
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
     path glm_consolidated
     path reads_per_gene   // collected across all files
-    path class_inputs    // collected across all files
+    path class_inputs     // collected across all files
     path gtf
     path exon_bounds
     path splices
