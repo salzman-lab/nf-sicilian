@@ -119,7 +119,7 @@ workflow SICILIAN {
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
     STAR_ALIGN (
-        UMITOOLS_EXTRACT,
+        UMITOOLS_EXTRACT.out.reads,
         PREPARE_GENOME.out.star_index,
         PREPARE_GENOME.out.gtf
     )
