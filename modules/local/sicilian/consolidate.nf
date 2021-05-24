@@ -45,7 +45,7 @@ process CONSOLIDATE {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path bam
+    path glm_outputs
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
@@ -65,8 +65,8 @@ process CONSOLIDATE {
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
-    samtools \\
-        sort \\
+    consolidate_GLM_output_files.R \\
+        .
         $options.args \\
         -@ $task.cpus \\
         $bam
