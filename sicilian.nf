@@ -46,6 +46,12 @@ if (!params.save_reference)     { star_genomegenerate_options['publish_files'] =
 def gffread_options         = modules['gffread']
 if (!params.save_reference) { gffread_options['publish_files'] = false }
 
+def star_align_options            = modules['star_align']
+
+def sicilian_classiput_options    = modules['sicilian_classiput']
+sicilian_classiput_options.args   += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
+
+
 def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
@@ -53,7 +59,8 @@ def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
 include { PREPARE_GENOME           } from './subworkflows/local/PREPARE_GENOME.nf'          addParams( genome_options: publish_genome_options, index_options: publish_index_options, gffread_options: gffread_options,  star_index_options: star_genomegenerate_options )
-include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: umitools_whitelist_options )
+include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
+include { SICILIAN_CLASSINPUT       } from './modules/local/sicilian_classinput.nf'          addParams( options: sicilian_classiput_options )
 
 
 ////////////////////////////////////////////////////
@@ -106,6 +113,12 @@ workflow SICILIAN {
         ch_reads,
         PREPARE_GENOME.out.star_index,
         PREPARE_GENOME.out.gtf
+    )
+
+    SICILIAN_CLASSINPUT(
+        STAR_ALIGN.out.bam,
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.ch_sicilian_annotator,
     )
 
     GET_SOFTWARE_VERSIONS (
