@@ -77,9 +77,11 @@ include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome.n
     star_index_options: star_genomegenerate_options, 
     sicilian_createannotator_options: sicilian_createannotator_options )
 include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
-include { CLASSINPUT as SICILIAN_CLASSINPUT       } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
-include { GLM as SICILIAN_GLM             } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
+include { CLASSINPUT       } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
+include { GLM             } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
 
+// Postprocessing of SICILIAN output
+include { CONSOLIDATE             } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -137,19 +139,23 @@ workflow SICILIAN {
         PREPARE_GENOME.out.gtf,
     )
 
-    SICILIAN_CLASSINPUT (
+    CLASSINPUT (
         STAR_ALIGN.out.bam,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_annotator,
     )
 
-    SICILIAN_GLM (
+    GLM (
         ch_domain,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
         STAR_ALIGN.out.sj_out_tab,
         STAR_ALIGN.out.chimeric_out_junction,
         STAR_ALIGN.out.reads_per_gene,
+    )
+
+    CONSOLIDATE(
+        GLM.out.
     )
 
     GET_SOFTWARE_VERSIONS (

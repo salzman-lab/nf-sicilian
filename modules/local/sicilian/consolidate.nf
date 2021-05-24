@@ -49,7 +49,7 @@ process CONSOLIDATE {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*.bam", emit: bam
+    path "*GLM_outputs_consolidated.txt", emit: glm_consolidated
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -64,12 +64,16 @@ process CONSOLIDATE {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    def input_path = './'
+    def run_name = './'
+    def tenx = params.tenx ? "1" : "0"
     """
     consolidate_GLM_output_files.R \\
-        .
-        $options.args \\
-        -@ $task.cpus \\
-        $bam
+        ${input_path} \\
+        ${run_name} \\
+        ${tenx} \\
+        $options.args
+
 
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
