@@ -484,7 +484,7 @@ uniformity_test <- function(dt, min_R1_offset, max_R1_offset) {
 tic("reading inputs:")
 ###### Input arguments ##############
 args = commandArgs(trailingOnly = TRUE)
-class_input_file = args[1]
+directory = args[1]
 gtf_file = args[2]
 is.SE = as.numeric(args[3])
 is.10X = as.numeric(args[4])
@@ -499,6 +499,8 @@ toc()
 ##################################
 
 ###### read in class input file #####################
+class_input_file = list.files(directory, pattern = "*class_input.tsv")
+class_input_file = paste(directory, class_input_file,sep = "")
 class_input =  fread(class_input_file, sep = "\t", header = TRUE)
 ###############################################
 
