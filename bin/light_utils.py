@@ -11,9 +11,6 @@ import re
 
 import sys
 
-# sys.path.insert(1, '/scratch/PI/horence/JuliaO/single_cell/STAR_wrapper/scripts/')
-import annotator
-
 
 def get_gene_id(row):
     #  return row["attribute"].split(";")[0].split()[1][1:-1]
@@ -400,6 +397,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
     )
     CI_new["juncPosR1A"] = (
         CI_new["refName_newR1"]
+        .astype(str)
         .str.split("|")
         .str[0]
         .str.split(":")
@@ -408,6 +406,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
     )
     CI_new["juncPosR1B"] = (
         CI_new["refName_newR1"]
+        .astype(str)
         .str.split("|")
         .str[1]
         .str.split(":")
