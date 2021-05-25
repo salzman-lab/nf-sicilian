@@ -68,7 +68,7 @@ def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index
 
 // Import modules
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
-include { UMITOOLS_EXTRACT        } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
+include { UMITOOLS_EXTRACT         } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
 include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome.nf'          addParams( 
     genome_options: publish_genome_options, 
@@ -77,12 +77,13 @@ include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome.n
     star_index_options: star_genomegenerate_options, 
     sicilian_createannotator_options: sicilian_createannotator_options )
 include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
-include { CLASSINPUT       } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
-include { GLM             } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
+include { CLASSINPUT               } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
+include { GLM                      } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
 
 // Postprocessing of SICILIAN output
-include { CONSOLIDATE             } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
+include { CONSOLIDATE              } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
 include { PROCESSCI10X             } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_glm_options )
+include { POSTPROCESS              } from './modules/local/sicilian/postprocess.nf'          addParams( options: sicilian_glm_options )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
