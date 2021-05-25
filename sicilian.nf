@@ -157,7 +157,12 @@ workflow SICILIAN {
     )
 
     PROCESSCI10X (
-        CONSOLIDATE.out.glm_consolidated
+        CONSOLIDATE.out.glm_consolidated,
+        STAR_ALIGN.out.reads_per_gene.collect(),
+        CLASSINPUT.out.class_input.collect(),
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.sicilian_exon_bounds,
+        PREPARE_GENOME.out.sicilian_splices,
     )
 
     ch_software_versions

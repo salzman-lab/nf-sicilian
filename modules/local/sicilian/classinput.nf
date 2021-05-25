@@ -56,6 +56,7 @@ process CLASSINPUT {
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     // path "*.bam", emit: bam
     // TODO nf-core: List additional required output channels/values here
+    path("*class_input.tsv")      , emit: class_input
     path "*.version.txt"          , emit: version
 
     script:
@@ -77,6 +78,7 @@ process CLASSINPUT {
         --bams ${bam} \\
         --stranded_library \\
         ${options.args}
+    mv class_input ${sample_id}__class_input.tsv
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

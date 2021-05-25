@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_PROCESSCI10X {
+process PROCESSCI10X {
     tag '$bam'
     label 'process_large'
     publishDir "${params.outdir}",
