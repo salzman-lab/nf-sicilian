@@ -165,6 +165,11 @@ workflow SICILIAN {
         PREPARE_GENOME.out.sicilian_splices,
     )
 
+    POSTPROCESS (
+        PROCESSCI10X.out.sicilian_junctions_tsv,
+        CONSOLIDATE.out.glm_consolidated
+    )
+
     ch_software_versions
         .map { it -> if (it) [ it.baseName, it ] }
         .groupTuple()

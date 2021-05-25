@@ -20,9 +20,9 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process PROCESSCI10X {
+process POSTPROCESS {
     tag '$bam'
-    label 'process_large'
+    label 'process_small'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -45,17 +45,12 @@ process PROCESSCI10X {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
+    path sicilian_junctions_tsv
     path glm_consolidated
-    path reads_per_gene   // collected across all files
-    path class_inputs     // collected across all files
-    path gtf
-    path exon_bounds
-    path splices
-
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*.tsv", emit: sicilian_junctions_tsv
+    path "*_with_postprocessing.txt", emit: postprocessed_txt
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -73,12 +68,10 @@ process PROCESSCI10X {
     def output_path = './'
     def run_name = './'
     """
-    Process_CI_10x.py \\
-        -d $output_path \\
-        -o $run_name \\
-        -g $gtf \\
-        -e $exon_bounds \\
-        -s $splices
+    post_processing.R \\
+        $output_path \\
+        $run_name \\
+
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
