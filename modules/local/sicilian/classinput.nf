@@ -70,9 +70,10 @@ process CLASSINPUT {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    def outpath = './'
     """
     light_class_input.py \\
-        --outpath . \\
+        --outpath ${outpath} \\
         --gtf ${gtf} \\
         --annotator ${annotator} \\
         --bams ${bam} \\
@@ -80,6 +81,8 @@ process CLASSINPUT {
         ${options.args}
     ls -lha 
     mv class_input.tsv ${sample_id}__class_input.tsv
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    python -c 'import pandas; print(pandas.__version__)' > ${software}__pandas.version.txt
+    python -c 'import pysam; print(pysam.__version__)' > ${software}__pysam.version.txt
+    python -c 'import numpy; print(numpy.__version__)' > ${software}__numpy.version.txt
     """
 }
