@@ -550,6 +550,7 @@ tic()
 class_input[,c("junc_cdf_glm", "junc_cdf_glm_corrected", "junc_cdf_glmnet", "junc_cdf_glmnet_constrained", "junc_cdf_glmnet_corrected", "junc_cdf_glmnet_corrected_constrained"):=NULL]
 class_input[,c("p_predicted_glm", "p_predicted_corrected", "p_predicted_glmnet", "p_predicted_glmnet_constrained", "p_predicted_glmnet_corrected", "p_predicted_glmnet_corrected_constrained"):=NULL]
 class_input[, numReads :=length(unique(id)), by = refName_newR1]
+class_input$refName_newR1 <- as.character(class_input$refName_newR1)
 class_input[, chrR1A:=strsplit(refName_newR1, split = ":", fixed = TRUE)[[1]][1], by = refName_newR1]
 class_input[, chrR1B:=strsplit(refName_newR1, split = "[:|]")[[1]][5], by = refName_newR1]
 class_input[, juncPosR1A:=as.integer(strsplit(refName_newR1, split = ":", fixed = TRUE)[[1]][3]), by = refName_newR1]
