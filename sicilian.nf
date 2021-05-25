@@ -137,12 +137,14 @@ workflow SICILIAN {
         PREPARE_GENOME.out.star_index,
         PREPARE_GENOME.out.gtf,
     )
+    ch_software_versions = ch_software_versions.mix(STAR_ALIGN.out.version.first().ifEmpty(null))
 
     CLASSINPUT (
         STAR_ALIGN.out.bam,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_annotator,
     )
+    ch_software_versions = ch_software_versions.mix(CLASSINPUT.out.version.ifEmpty(null))
 
     GLM (
         ch_domain,
@@ -153,6 +155,8 @@ workflow SICILIAN {
         STAR_ALIGN.out.reads_per_gene,
         CLASSINPUT.out.class_input
     )
+    ch_software_versions = ch_software_versions.mix(GLM.out.version.ifEmpty(null))
+    
 
     CONSOLIDATE(
         GLM.out.glm_output.collect()
@@ -168,7 +172,7 @@ workflow SICILIAN {
     )
 
     POSTPROCESS (
-        PROCESSCI10X.out.sicilian_junctions_tsv,
+        PROCESS_CI_10X.out.sicilian_junctions_tsv,
         CONSOLIDATE.out.glm_consolidated
     )
 
