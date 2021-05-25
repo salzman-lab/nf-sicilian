@@ -71,7 +71,7 @@ process GLM {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    def outdir = '.'
+    def outdir = './'
     def single = params.single_end ? '1' : '0'
     def tenx = params.tenx ? '1' : '0'
     def stranded = params.stranded ? '1' : '0'
