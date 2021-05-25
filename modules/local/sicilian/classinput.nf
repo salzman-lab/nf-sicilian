@@ -78,7 +78,8 @@ process CLASSINPUT {
         --bams ${bam} \\
         --stranded_library \\
         ${options.args}
-    mv class_input ${sample_id}__class_input.tsv
+    ls -lha 
+    mv class_input.tsv ${sample_id}__class_input.tsv
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
