@@ -71,7 +71,7 @@ process POSTPROCESS {
     post_processing.R \\
         $output_path \\
         $run_name \\
-
+    ls -lha
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

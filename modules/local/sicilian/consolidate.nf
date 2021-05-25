@@ -74,7 +74,7 @@ process CONSOLIDATE {
         ${tenx} \\
         $options.args
 
-
+    ls -lha
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

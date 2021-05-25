@@ -90,7 +90,7 @@ process GLM {
         -o sicilian_called_splice_juncs.tsv \\
         -e ${exon_bounds} \\
         -s ${splices}
-
+    ls -lha
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

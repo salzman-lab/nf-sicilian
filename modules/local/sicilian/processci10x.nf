@@ -79,6 +79,7 @@ process PROCESSCI10X {
         -g $gtf \\
         -e $exon_bounds \\
         -s $splices
+    ls -lha
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
