@@ -8,5 +8,9 @@
     "star_index": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/genome/index/star/",
     "tenx": true,
     "stranded": true,
-    "domain": "s3://salzman-lab/hg38_ref_files/domain_file.txt"
+    "domain": "s3://salzman-lab/hg38_ref_files/domain_file.txt",
+    "annotator": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_gene_names.pkl",
+    "exon_bounds": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_exon_bounds.pkl",
+    "splices": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_splices.pkl",
+    "skip_umitools": true
 }
