@@ -57,7 +57,7 @@ workflow PREPARE_GENOME {
     ch_star_index   = Channel.empty()
     ch_star_version = Channel.empty()
     if (params.star_index) {
-        if (params.star_index.endsWith('.tar.gz') || params.star_index.endswith('.tgz')) {
+        if (params.star_index.endsWith('.tar.gz') || params.star_index.endsWith('.tgz')) {
             ch_star_index = UNTAR_STAR_INDEX ( params.star_index ).untar
         } else {
             ch_star_index = file(params.star_index)

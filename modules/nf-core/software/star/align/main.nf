@@ -48,6 +48,17 @@ process STAR_ALIGN {
     def out_sam_type = (options.args.contains('--outSAMtype')) ? '' : '--outSAMtype BAM Unsorted'
     def mv_unsorted_bam = (options.args.contains('--outSAMtype BAM Unsorted SortedByCoordinate')) ? "mv ${prefix}.Aligned.out.bam ${prefix}.Aligned.unsort.out.bam" : ''
     def reads_v2 = params.tenx ? "${reads[1]}" : "${reads}"
+    if (params.tenx) {
+        if (params.skip_umitools) {
+            // Skipping umi tools, so providing already-extracted R2 reads. No R1 at all --> take the first one
+            reads_v2 = "${reads[0]}"
+        } else {
+            // Did UMI tools, and only R2 has sequence to align since R1 is empty after UMI tools extract
+            reads_v2 = "${reads[1]}"
+        }
+    } else {
+        reads_v2 = "${reads}"
+    }
     """
     STAR \\
         --genomeDir $index \\
