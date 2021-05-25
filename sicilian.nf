@@ -82,7 +82,7 @@ include { GLM                      } from './modules/local/sicilian/glm.nf'     
 
 // Postprocessing of SICILIAN output
 include { CONSOLIDATE              } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
-include { PROCESSCI10X             } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_glm_options )
+include { PROCESS_CI_10X             } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_glm_options )
 include { POSTPROCESS              } from './modules/local/sicilian/postprocess.nf'          addParams( options: sicilian_glm_options )
 
 ////////////////////////////////////////////////////
@@ -158,7 +158,7 @@ workflow SICILIAN {
         GLM.out.glm_output.collect()
     )
 
-    PROCESSCI10X (
+    PROCESS_CI_10X (
         CONSOLIDATE.out.glm_consolidated,
         STAR_ALIGN.out.reads_per_gene.collect(),
         CLASSINPUT.out.class_input.collect(),
