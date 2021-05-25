@@ -21,7 +21,7 @@ dependencies:
   # R dependencies
   - bioconda::bioconductor-genomicalignments=1.26.0
   - conda-forge::r-tidyverse=1.3.1
-  - conda-forge::glmnet=2.2.1
+  - conda-forge::r-glmnet
   - conda-forge::r-tictoc=1.0
   - conda-forge::r-optimalcutpoints=1.1
   - conda-forge::r-data.table=1.14.0
