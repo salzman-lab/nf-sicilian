@@ -147,6 +147,7 @@ workflow SICILIAN {
     ch_software_versions = ch_software_versions.mix(CLASSINPUT.out.version.ifEmpty(null))
 
     GLM (
+        PREPARE_GENOME.out.gtf,
         ch_domain,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
@@ -156,11 +157,13 @@ workflow SICILIAN {
         CLASSINPUT.out.class_input
     )
     ch_software_versions = ch_software_versions.mix(GLM.out.version.ifEmpty(null))
-    
+
 
     CONSOLIDATE(
         GLM.out.glm_output.collect()
     )
+    ch_software_versions = ch_software_versions.mix(CONSOLIDATE.out.version.ifEmpty(null))
+
 
     PROCESS_CI_10X (
         CONSOLIDATE.out.glm_consolidated,
@@ -170,11 +173,15 @@ workflow SICILIAN {
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
     )
+    ch_software_versions = ch_software_versions.mix(PROCESS_CI_10X.out.version.ifEmpty(null))
+
 
     POSTPROCESS (
         PROCESS_CI_10X.out.sicilian_junctions_tsv,
         CONSOLIDATE.out.glm_consolidated
     )
+    ch_software_versions = ch_software_versions.mix(POSTPROCESS.out.version.ifEmpty(null))
+
 
     ch_software_versions
         .map { it -> if (it) [ it.baseName, it ] }

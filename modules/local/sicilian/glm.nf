@@ -46,6 +46,7 @@ process GLM {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
+    path gtf
     path domain
     path exon_bounds
     path splices
@@ -78,6 +79,7 @@ process GLM {
     """
     GLM_script_light.R \\
         $outdir \\
+        $gtf \\
         $single \\
         $tenx \\
         $stranded \\
@@ -91,6 +93,10 @@ process GLM {
         -e ${exon_bounds} \\
         -s ${splices}
     ls -lha
+    # Rename file to be unique to each sample to prevent clashing
+    mv GLM_output.txt ${sample_id}__GLM_output.txt
+
+    # Output R package versions
     Rscript -e 'cat(paste(packageVersion("cutpointr")))' > ${software}__r-cutpointr.version.txt
     Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
     Rscript -e 'cat(paste(packageVersion("dplyr")))' > ${software}__r-dplyr.version.txt
