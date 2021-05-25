@@ -151,6 +151,7 @@ workflow SICILIAN {
         STAR_ALIGN.out.sj_out_tab,
         STAR_ALIGN.out.chimeric_out_junction,
         STAR_ALIGN.out.reads_per_gene,
+        CLASSINPUT.out.class_input
     )
 
     CONSOLIDATE(

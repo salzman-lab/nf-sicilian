@@ -52,11 +52,11 @@ process GLM {
     tuple val(sample_id), path(sj_out_tab)
     tuple val(sample_id), path(chimeric_out_junction)
     tuple val(sample_id), path(reads_per_gene)
+    tuple val(sample_id), path(class_input)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     path "*GLM_output.txt", emit: glm_output
-    path "*class_input.tsv", emit: class_input
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 

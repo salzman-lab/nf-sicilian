@@ -56,7 +56,7 @@ process CLASSINPUT {
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     // path "*.bam", emit: bam
     // TODO nf-core: List additional required output channels/values here
-    path("*class_input.tsv")      , emit: class_input
+    tuple val(sample_id), path("*class_input.tsv")      , emit: class_input
     path "*.version.txt"          , emit: version
 
     script:
