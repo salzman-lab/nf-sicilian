@@ -91,6 +91,12 @@ process GLM {
         -e ${exon_bounds} \\
         -s ${splices}
     ls -lha
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    Rscript -e 'cat(paste(packageVersion("cutpointr")))' > ${software}__r-cutpointr.version.txt
+    Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
+    Rscript -e 'cat(paste(packageVersion("dplyr")))' > ${software}__r-dplyr.version.txt
+    Rscript -e 'cat(paste(packageVersion("GenomicAlignments")))' > ${software}__bioconductor-GenomicAlignments.version.txt
+    Rscript -e 'cat(paste(packageVersion("glmnet")))' > ${software}__r-glmnet.version.txt
+    Rscript -e 'cat(paste(packageVersion("stringr")))' > ${software}__r-stringr.version.txt
+    Rscript -e 'cat(paste(packageVersion("tictoc")))' > ${software}__tictoc.version.txt
     """
 }
