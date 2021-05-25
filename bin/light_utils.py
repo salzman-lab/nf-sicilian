@@ -57,17 +57,17 @@ def modify_refnames(CI, gtf_file, stranded_library):
     # CI_new["read_strandR1A_orig"] = CI_new["read_strandR1A"]
     # CI_new["read_strandR1B_orig"] = CI_new["read_strandR1B"]
     CI_new["gene_strandR1A"] = (
-        CI_new["refName_ABR1"].str.split("|").str[0].str.split(":").str[-1]
+        CI_new["refName_ABR1"].astype(str).str.split("|").str[0].str.split(":").str[-1]
     )
     CI_new["gene_strandR1B"] = (
-        CI_new["refName_ABR1"].str.split("|").str[1].str.split(":").str[-1]
+        CI_new["refName_ABR1"].astype(str).str.split("|").str[1].str.split(":").str[-1]
     )
     CI_new["numgeneR1A"] = (
-        CI_new["geneR1A"].str.split(",").str.len()
+        CI_new["geneR1A"].astype(str).str.split(",").str.len()
     )  # .astype("Int32") # the number of overlapping genes on the R1A side
     CI_new[["numgeneR1A"]] = CI_new[["numgeneR1A"]].fillna(0)
     CI_new["numgeneR1B"] = (
-        CI_new["geneR1B"].str.split(",").str.len()
+        CI_new["geneR1B"].astype(str).str.split(",").str.len()
     )  # .astype("Int32") # the number of overlapping genes on the R1B side
     CI_new[["numgeneR1B"]] = CI_new[["numgeneR1B"]].fillna(0)
     # display(CI_new[CI_new["id"] == "A00111:88:H55NYDMXX:1:1101:15365:8469_TATCAGGCATTATCTC_GCAACGGCAG"])
@@ -78,12 +78,20 @@ def modify_refnames(CI, gtf_file, stranded_library):
             ind = CI_new[
                 (
                     (CI_new["numgeneR1" + suff] > 2)
-                    & (CI_new["geneR1" + suff].str.contains(weird_gene, na=False))
+                    & (
+                        CI_new["geneR1" + suff]
+                        .astype(str)
+                        .str.contains(weird_gene, na=False)
+                    )
                 )
                 | (
                     (CI_new["numgeneR1" + suff] > 1)
                     & ~(CI_new["gene_strandR1" + suff] == "?")
-                    & (CI_new["geneR1" + suff].str.contains(weird_gene, na=False))
+                    & (
+                        CI_new["geneR1" + suff]
+                        .astype(str)
+                        .str.contains(weird_gene, na=False)
+                    )
                 )
             ].index
             CI_new.loc[ind, "geneR1" + suff] = (
@@ -92,7 +100,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
                 .str.replace(",{}.*".format(weird_gene), "")
             )
             CI_new.loc[ind, "numgeneR1" + suff] = (
-                CI_new.loc[ind, "geneR1" + suff].str.split(",").str.len()
+                CI_new.loc[ind, "geneR1" + suff].astype(str).str.split(",").str.len()
             )  # .astype("Int32")
     CI_new["shared_gene"] = [
         ",".join([x for x in a.split(",") if x in b.split(",")])
@@ -100,23 +108,33 @@ def modify_refnames(CI, gtf_file, stranded_library):
     ]
     # display(CI_new[CI_new["id"] == "A00111:88:H55NYDMXX:1:1101:15365:8469_TATCAGGCATTATCTC_GCAACGGCAG"])
 
-    CI_new["num_shared_genes"] = CI_new["shared_gene"].str.split(",").str.len()
+    CI_new["num_shared_genes"] = (
+        CI_new["shared_gene"].astype(str).st.split(",").str.len()
+    )
     CI_new.loc[CI_new["shared_gene"] == "", "num_shared_genes"] = 0
     ind = CI_new[
         (CI_new["num_shared_genes"] > 0)
         & ((CI_new["numgeneR1A"] > 1) | (CI_new["numgeneR1B"] > 1))
     ].index
     # display(CI_new.loc[[67],"geneR1A"])
-    CI_new.loc[ind, "geneR1A"] = CI_new.loc[ind]["shared_gene"].str.split(",").str[-1]
-    CI_new.loc[ind, "geneR1B"] = CI_new.loc[ind]["shared_gene"].str.split(",").str[-1]
+    CI_new.loc[ind, "geneR1A"] = (
+        CI_new.loc[ind]["shared_gene"].astype(str).st.split(",").str[-1]
+    )
+    CI_new.loc[ind, "geneR1B"] = (
+        CI_new.loc[ind]["shared_gene"].astype(str).st.split(",").str[-1]
+    )
     CI_new["geneR1A_uniq"] = CI_new["geneR1A"]
     CI_new["geneR1B_uniq"] = CI_new["geneR1B"]
     # display(CI_new[CI_new["id"] == "A00111:88:H55NYDMXX:1:1101:15365:8469_TATCAGGCATTATCTC_GCAACGGCAG"])
 
     ind = CI_new[(CI_new["numgeneR1A"] > 1) & (CI_new["num_shared_genes"] == 0)].index
-    CI_new.loc[ind, "geneR1A_uniq"] = CI_new.loc[ind]["geneR1A"].str.split(",").str[-1]
+    CI_new.loc[ind, "geneR1A_uniq"] = (
+        CI_new.loc[ind]["geneR1A"].astype(str).st.split(",").str[-1]
+    )
     ind = CI_new[(CI_new["numgeneR1B"] > 1) & (CI_new["num_shared_genes"] == 0)].index
-    CI_new.loc[ind, "geneR1B_uniq"] = CI_new.loc[ind]["geneR1B"].str.split(",").str[-1]
+    CI_new.loc[ind, "geneR1B_uniq"] = (
+        CI_new.loc[ind]["geneR1B"].astype(str).st.split(",").str[-1]
+    )
     for let in ["A", "B"]:
 
         CI_new = CI_new.merge(
@@ -153,7 +171,9 @@ def modify_refnames(CI, gtf_file, stranded_library):
         )
         & (CI_new["numgeneR1A"] > 1)
     ].index
-    CI_new.loc[ind, "geneR1A_uniq"] = CI_new.loc[ind]["geneR1A"].str.split(",").str[-2]
+    CI_new.loc[ind, "geneR1A_uniq"] = (
+        CI_new.loc[ind]["geneR1A"].astype(str).st.split(",").str[-2]
+    )
     CI_new = CI_new.drop(["gene_strandR1A_new"], axis=1)
     CI_new = CI_new.merge(
         gene_strand_info,
@@ -180,7 +200,9 @@ def modify_refnames(CI, gtf_file, stranded_library):
         & (CI_new["num_shared_genes"] == 0)
         & (CI_new["numgeneR1B"] > 1)
     ].index
-    CI_new.loc[ind, "geneR1B_uniq"] = CI_new.loc[ind]["geneR1B"].str.split(",").str[-2]
+    CI_new.loc[ind, "geneR1B_uniq"] = (
+        CI_new.loc[ind]["geneR1B"].astype(str).st.split(",").str[-2]
+    )
     CI_new = CI_new.drop(["gene_strandR1B_new"], axis=1)
     CI_new = CI_new.merge(
         gene_strand_info,
@@ -369,10 +391,10 @@ def modify_refnames(CI, gtf_file, stranded_library):
     CI_new = CI
 
     CI_new["gene_strandR1A"] = (
-        CI_new["refName_newR1"].str.split("|").str[0].str.split(":").str[-1]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[-1]
     )
     CI_new["gene_strandR1B"] = (
-        CI_new["refName_newR1"].str.split("|").str[1].str.split(":").str[-1]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[-1]
     )
     CI_new["juncPosR1A"] = (
         CI_new["refName_newR1"]
@@ -391,16 +413,16 @@ def modify_refnames(CI, gtf_file, stranded_library):
         .astype("int")
     )
     CI_new["chrR1A"] = (
-        CI_new["refName_newR1"].str.split("|").str[0].str.split(":").str[0]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[0]
     )
     CI_new["chrR1B"] = (
-        CI_new["refName_newR1"].str.split("|").str[1].str.split(":").str[0]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[0]
     )
     CI_new["geneR1A_uniq"] = (
-        CI_new["refName_newR1"].str.split("|").str[0].str.split(":").str[1]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[1]
     )
     CI_new["geneR1B_uniq"] = (
-        CI_new["refName_newR1"].str.split("|").str[1].str.split(":").str[1]
+        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[1]
     )
     CI_new.drop("reverse", axis=1, inplace=True)
 
