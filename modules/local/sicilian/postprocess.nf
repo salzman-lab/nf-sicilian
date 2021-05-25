@@ -72,6 +72,6 @@ process POSTPROCESS {
         $output_path \\
         $run_name \\
     ls -lha
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
     """
 }

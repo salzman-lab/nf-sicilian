@@ -80,6 +80,8 @@ process PROCESS_CI_10X {
         -e $exon_bounds \\
         -s $splices
     ls -lha
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    python -c 'import pandas; print(pandas.__version__)' > ${software}__pandas.version.txt
+    python -c 'import tqdm; print(tqdm.__version__)' > ${software}__tqdm.version.txt
+    python -c 'import numpy; print(numpy.__version__)' > ${software}__numpy.version.txt
     """
 }

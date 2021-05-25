@@ -75,6 +75,7 @@ process CONSOLIDATE {
         $options.args
 
     ls -lha
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
+    Rscript -e 'cat(paste(packageVersion("stringr")))' > ${software}__r-stringr.version.txt
     """
 }
