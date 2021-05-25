@@ -96,7 +96,9 @@ def modify_refnames(CI, gtf_file, stranded_library):
             ].index
             CI_new.loc[ind, "geneR1" + suff] = (
                 CI_new.loc[ind, "geneR1" + suff]
+                .astype(str)
                 .str.replace("{}[^,]*[,]".format(weird_gene), "", regex=True)
+                .astype(str)
                 .str.replace(",{}.*".format(weird_gene), "")
             )
             CI_new.loc[ind, "numgeneR1" + suff] = (
@@ -109,7 +111,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
     # display(CI_new[CI_new["id"] == "A00111:88:H55NYDMXX:1:1101:15365:8469_TATCAGGCATTATCTC_GCAACGGCAG"])
 
     CI_new["num_shared_genes"] = (
-        CI_new["shared_gene"].astype(str).st.split(",").str.len()
+        CI_new["shared_gene"].astype(str).str.split(",").str.len()
     )
     CI_new.loc[CI_new["shared_gene"] == "", "num_shared_genes"] = 0
     ind = CI_new[
@@ -118,10 +120,10 @@ def modify_refnames(CI, gtf_file, stranded_library):
     ].index
     # display(CI_new.loc[[67],"geneR1A"])
     CI_new.loc[ind, "geneR1A"] = (
-        CI_new.loc[ind]["shared_gene"].astype(str).st.split(",").str[-1]
+        CI_new.loc[ind]["shared_gene"].astype(str).str.split(",").str[-1]
     )
     CI_new.loc[ind, "geneR1B"] = (
-        CI_new.loc[ind]["shared_gene"].astype(str).st.split(",").str[-1]
+        CI_new.loc[ind]["shared_gene"].astype(str).str.split(",").str[-1]
     )
     CI_new["geneR1A_uniq"] = CI_new["geneR1A"]
     CI_new["geneR1B_uniq"] = CI_new["geneR1B"]
@@ -129,11 +131,11 @@ def modify_refnames(CI, gtf_file, stranded_library):
 
     ind = CI_new[(CI_new["numgeneR1A"] > 1) & (CI_new["num_shared_genes"] == 0)].index
     CI_new.loc[ind, "geneR1A_uniq"] = (
-        CI_new.loc[ind]["geneR1A"].astype(str).st.split(",").str[-1]
+        CI_new.loc[ind]["geneR1A"].astype(str).str.split(",").str[-1]
     )
     ind = CI_new[(CI_new["numgeneR1B"] > 1) & (CI_new["num_shared_genes"] == 0)].index
     CI_new.loc[ind, "geneR1B_uniq"] = (
-        CI_new.loc[ind]["geneR1B"].astype(str).st.split(",").str[-1]
+        CI_new.loc[ind]["geneR1B"].astype(str).str.split(",").str[-1]
     )
     for let in ["A", "B"]:
 
@@ -172,7 +174,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
         & (CI_new["numgeneR1A"] > 1)
     ].index
     CI_new.loc[ind, "geneR1A_uniq"] = (
-        CI_new.loc[ind]["geneR1A"].astype(str).st.split(",").str[-2]
+        CI_new.loc[ind]["geneR1A"].astype(str).str.split(",").str[-2]
     )
     CI_new = CI_new.drop(["gene_strandR1A_new"], axis=1)
     CI_new = CI_new.merge(
@@ -201,7 +203,7 @@ def modify_refnames(CI, gtf_file, stranded_library):
         & (CI_new["numgeneR1B"] > 1)
     ].index
     CI_new.loc[ind, "geneR1B_uniq"] = (
-        CI_new.loc[ind]["geneR1B"].astype(str).st.split(",").str[-2]
+        CI_new.loc[ind]["geneR1B"].astype(str).str.split(",").str[-2]
     )
     CI_new = CI_new.drop(["gene_strandR1B_new"], axis=1)
     CI_new = CI_new.merge(
@@ -391,10 +393,10 @@ def modify_refnames(CI, gtf_file, stranded_library):
     CI_new = CI
 
     CI_new["gene_strandR1A"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[-1]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[0].str.split(":").str[-1]
     )
     CI_new["gene_strandR1B"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[-1]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[1].str.split(":").str[-1]
     )
     CI_new["juncPosR1A"] = (
         CI_new["refName_newR1"]
@@ -413,16 +415,16 @@ def modify_refnames(CI, gtf_file, stranded_library):
         .astype("int")
     )
     CI_new["chrR1A"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[0]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[0].str.split(":").str[0]
     )
     CI_new["chrR1B"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[0]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[1].str.split(":").str[0]
     )
     CI_new["geneR1A_uniq"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[0].str.split(":").str[1]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[0].str.split(":").str[1]
     )
     CI_new["geneR1B_uniq"] = (
-        CI_new["refName_newR1"].astype(str).st.split("|").str[1].str.split(":").str[1]
+        CI_new["refName_newR1"].astype(str).str.split("|").str[1].str.split(":").str[1]
     )
     CI_new.drop("reverse", axis=1, inplace=True)
 
