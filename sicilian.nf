@@ -82,6 +82,7 @@ include { GLM             } from './modules/local/sicilian/glm.nf'          addP
 
 // Postprocessing of SICILIAN output
 include { CONSOLIDATE             } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
+include { PROCESSCI10X             } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_glm_options )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -155,6 +156,9 @@ workflow SICILIAN {
         GLM.out.glm_output.collect()
     )
 
+    PROCESSCI10X (
+        CONSOLIDATE.out.glm_consolidated
+    )
 
     ch_software_versions
         .map { it -> if (it) [ it.baseName, it ] }
