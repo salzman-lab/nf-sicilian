@@ -30,9 +30,9 @@ process STAR_ALIGN {
     tuple val(sample_id), path('*Log.out')         , emit: log_out
     tuple val(sample_id), path('*Log.progress.out'), emit: log_progress
     path  '*.version.txt'                          , emit: version
-    path('*ReadsPerGene.out.tab')                  , emit: reads_per_gene
-    path('*SJ.out.tab')                            , emit: sj_out_tab
-    path('*Chimeric.out.junction')                 , emit: chimeric_out_junction
+    tuple val(sample_id), path('*ReadsPerGene.out.tab')                  , emit: reads_per_gene
+    tuple val(sample_id), path('*SJ.out.tab')                            , emit: sj_out_tab
+    tuple val(sample_id), path('*Chimeric.out.junction')                 , emit: chimeric_out_junction
 
     tuple val(sample_id), path('*sortedByCoord.out.bam')  , optional:true, emit: bam_sorted
     tuple val(sample_id), path('*toTranscriptome.out.bam'), optional:true, emit: bam_transcript
