@@ -177,7 +177,7 @@ workflow SICILIAN {
 
 
     SICILIAN_POSTPROCESS (
-        PROCESS_CI_10X.out.sicilian_junctions_tsv,
+        SICILIAN_PROCESS_CI_10X.out.sicilian_junctions_tsv,
         SICILIAN_CONSOLIDATE.out.glm_consolidated
     )
     ch_software_versions = ch_software_versions.mix(SICILIAN_POSTPROCESS.out.version.ifEmpty(null))
