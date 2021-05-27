@@ -275,11 +275,11 @@ add_ensembl <- function(gtf_file,directory,class_input,is.SE){
     gene_length = gtf_info[V3 == "gene",list(gene_id,length)]
   }
   
-  if(is.SE == 1){
-    genecount_file = paste(directory,list.files(directory, pattern = "2ReadsPerGene.out.tab", all.files = FALSE),sep = "")
-  } else {
-    genecount_file = paste(directory,list.files(directory, pattern = "1ReadsPerGene.out.tab", all.files = FALSE),sep = "")
-  }
+  # if(is.SE == 1){
+  genecount_file = paste(directory,list.files(directory, pattern = "*ReadsPerGene.out.tab", all.files = FALSE),sep = "")
+  # } else {
+  #   genecount_file = paste(directory,list.files(directory, pattern = "*1ReadsPerGene.out.tab", all.files = FALSE),sep = "")
+  # }
   
   ######### read in gene count file #######
   gene_count = fread(genecount_file,sep = "\t",header = FALSE, skip = 4)
