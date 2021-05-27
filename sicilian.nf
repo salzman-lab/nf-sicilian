@@ -144,7 +144,7 @@ workflow SICILIAN {
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_annotator,
     )
-    ch_software_versions = ch_software_versions.mix(CLASSINPUT.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(SICILIAN_CLASSINPUT.out.version.ifEmpty(null))
 
     SICILIAN_GLM (
         PREPARE_GENOME.out.gtf,
@@ -156,7 +156,7 @@ workflow SICILIAN {
         STAR_ALIGN.out.reads_per_gene,
         CLASSINPUT.out.class_input
     )
-    ch_software_versions = ch_software_versions.mix(GLM.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
 
 
     SICILIAN_CONSOLIDATE(
@@ -173,14 +173,14 @@ workflow SICILIAN {
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
     )
-    ch_software_versions = ch_software_versions.mix(PROCESS_CI_10X.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(SICILIAN_PROCESS_CI_10X.out.version.ifEmpty(null))
 
 
     SICILIAN_POSTPROCESS (
         PROCESS_CI_10X.out.sicilian_junctions_tsv,
         CONSOLIDATE.out.glm_consolidated
     )
-    ch_software_versions = ch_software_versions.mix(POSTPROCESS.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(SICILIAN_POSTPROCESS.out.version.ifEmpty(null))
 
 
     ch_software_versions
