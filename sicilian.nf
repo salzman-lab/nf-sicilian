@@ -160,9 +160,9 @@ workflow SICILIAN {
 
 
     SICILIAN_CONSOLIDATE(
-        GLM.out.glm_output.collect()
+        SICILIAN_GLM.out.glm_output.collect()
     )
-    ch_software_versions = ch_software_versions.mix(CONSOLIDATE.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(SICILIAN_CONSOLIDATE.out.version.ifEmpty(null))
 
 
     SICILIAN_PROCESS_CI_10X (
