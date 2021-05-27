@@ -16,7 +16,7 @@ include {
 include { UNTAR as UNTAR_STAR_INDEX   } from '../../modules/nf-core/software/untar/main'                addParams( options: params.star_index_options      )
 include { GFFREAD                     } from '../../modules/nf-core/software/gffread/main'              addParams( options: params.gffread_options         )
 include { STAR_GENOMEGENERATE         } from '../../modules/nf-core/software/star/genomegenerate/main'  addParams( options: params.star_index_options      )
-include { CREATEANNOTATOR as SICILIAN_CREATEANNOTATOR    } from '../../modules/local/sicilian/createannotator.nf'          addParams( params.sicilian_createannotator_options )
+include { SICILIAN_CREATEANNOTATOR    } from '../../modules/local/sicilian/createannotator.nf'          addParams( params.sicilian_createannotator_options )
 
 workflow PREPARE_GENOME {
 

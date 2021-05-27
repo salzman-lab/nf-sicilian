@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process GLM {
+process SICILIAN_GLM {
     tag "$sample_id"
     label 'process_medium'
     label 'cpu_2'
@@ -73,7 +73,7 @@ process GLM {
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     def outdir = './'
-    def single = params.single_end ? '1' : '0'
+    def single = (params.single_end || params.tenx) ? '1' : '0'
     def tenx = params.tenx ? '1' : '0'
     def stranded = params.stranded ? '1' : '0'
     """

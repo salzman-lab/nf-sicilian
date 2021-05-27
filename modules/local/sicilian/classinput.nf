@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process CLASSINPUT {
+process SICILIAN_CLASSINPUT {
     tag "$sample_id"
     label 'process_high'
     label 'process_super_highmem'

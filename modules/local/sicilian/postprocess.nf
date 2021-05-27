@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process POSTPROCESS {
+process SICILIAN_POSTPROCESS {
     tag '$bam'
     label 'process_small'
     publishDir "${params.outdir}",

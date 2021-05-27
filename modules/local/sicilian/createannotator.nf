@@ -20,7 +20,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process CREATEANNOTATOR {
+process SICILIAN_CREATEANNOTATOR {
     tag "${gtf}"
     label 'process_low'
     publishDir "${params.outdir}",
