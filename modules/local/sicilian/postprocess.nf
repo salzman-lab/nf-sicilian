@@ -21,7 +21,6 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process SICILIAN_POSTPROCESS {
-    tag '$bam'
     label 'process_small'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -31,11 +30,11 @@ process SICILIAN_POSTPROCESS {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "YOUR-TOOL-HERE" : null)
+    conda (params.enable_conda ? "conda-forge::r-data.table=1.14.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
     } else {
-        container "quay.io/biocontainers/YOUR-TOOL-HERE"
+        container "docker.io/czbiohub/sicilian:dev"
     }
 
     input:

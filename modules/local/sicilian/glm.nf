@@ -32,7 +32,7 @@ process SICILIAN_GLM {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "bioconda::bioconductor-genomicalignments conda-forge::r-tidyverse conda-forge::glmnet conda-forge::r-tictoc conda-forge::r-optimalcutpoints conda-forge::r-data.table" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-genomicalignments=1.22.0 conda-forge::r-tidyverse=1.3.1 conda-forge::r-glmnet=4.1conda-forge::r-tictoc=1.0 dloewenstein::r-cutpointr=1.0.0 conda-forge::r-data.table=1.14.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
     } else {
