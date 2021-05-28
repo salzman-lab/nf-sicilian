@@ -104,6 +104,10 @@ def sicilian_classinput_options    = modules['sicilian_classinput']
 sicilian_classinput_options.args   += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
 
 def sicilian_glm_options    = modules['sicilian_glm']
+def sicilian_annsplices_options    = modules['sicilian_annsplices']
+def sicilian_consolidate_options    = modules['sicilian_consolidate']
+def sicilian_process_ci_10x_options    = modules['sicilian_process_ci_10x']
+def sicilian_postprocess_options    = modules['sicilian_postprocess']
 
 def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
@@ -118,14 +122,15 @@ include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome.n
     gffread_options: gffread_options,  
     star_index_options: star_genomegenerate_options, 
     sicilian_createannotator_options: sicilian_createannotator_options )
-include { STAR_ALIGN               } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
-include { SICILIAN_CLASSINPUT               } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
-include { SICILIAN_GLM                      } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
+include { STAR_ALIGN          } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
+include { SICILIAN_CLASSINPUT } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
+include { SICILIAN_GLM        } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
+include { SICILIAN_ANNSPLICES } from './modules/local/sicilian/annsplices.nf'          addParams( options: sicilian_annsplices_options )
 
-// Postprocessing of SICILIAN output
-include { SICILIAN_CONSOLIDATE              } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_glm_options )
-include { SICILIAN_PROCESS_CI_10X             } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_glm_options )
-include { SICILIAN_POSTPROCESS              } from './modules/local/sicilian/postprocess.nf'          addParams( options: sicilian_glm_options )
+// Postprocessing of SICILIAN output, to consolidate output from mutliple samples into one summary file
+include { SICILIAN_CONSOLIDATE    } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_consolidate_options )
+include { SICILIAN_PROCESS_CI_10X } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_process_ci_10x_options )
+include { SICILIAN_POSTPROCESS    } from './modules/local/sicilian/postprocess.nf'          addParams( options: sicilian_postprocess_options )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -218,6 +223,13 @@ workflow SICILIAN {
         )
         ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
         ch_glm_output = SICILIAN_GLM.out.glm_output
+
+        SICILIAN_ANNSPLICES(
+            SICILIAN_GLM.out.sicilian_called_splices,
+            PREPARE_GENOME.out.sicilian_exon_bounds,
+            PREPARE_GENOME.out.sicilian_splices,
+        )
+        ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
     }
 
     SICILIAN_CONSOLIDATE(

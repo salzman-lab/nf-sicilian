@@ -20,10 +20,9 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process SICILIAN_GLM {
-    tag "$sample_id"
-    label 'process_medium'
-    label 'cpu_2'
+process SICILIAN_ANNSPLICES {
+    tag '$sample_id'
+    label 'process_small'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -32,7 +31,7 @@ process SICILIAN_GLM {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    conda (params.enable_conda ? "bioconda::bioconductor-genomicalignments=1.22.0 conda-forge::r-tidyverse=1.3.1 conda-forge::r-glmnet=4.1conda-forge::r-tictoc=1.0 dloewenstein::r-cutpointr=1.0.0 conda-forge::r-data.table=1.14.0" : null)
+    conda (params.enable_conda ? "conda-forge::pandas=1.1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE"
     } else {
@@ -46,15 +45,12 @@ process SICILIAN_GLM {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path gtf
-    path domain
+    tuple val(sample_id), path(sicilian_called_splices)
     path exon_bounds
     path splices
-    tuple val(sample_id), path(class_input), path(sj_out_tab), path(chimeric_out_junction), path(reads_per_gene)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(sample_id), path("*GLM_output.txt"), emit: glm_output
     tuple val(sample_id), path("*sicilian_called_splice_juncs__annotated.tsv"), emit: sicilian_called_splices
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
@@ -70,33 +66,13 @@ process SICILIAN_GLM {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    def outdir = './'
-    def single = (params.single_end || params.tenx) ? '1' : '0'
-    def tenx = params.tenx ? '1' : '0'
-    def stranded = params.stranded ? '1' : '0'
     """
-    GLM_script_light.R \\
-        $outdir \\
-        $gtf \\
-        $single \\
-        $tenx \\
-        $stranded \\
-        $domain \\
-        $exon_bounds \\
-        $splices
-
     ls -lha
-    # Rename file to be unique to each sample to prevent clashing
-    mv GLM_output.txt ${sample_id}__GLM_output.txt
-    mv sicilian_called_splice_juncs.tsv  ${sample_id}__sicilian_called_splice_juncs.tsv 
-
-    # Output R package versions
-    Rscript -e 'cat(paste(packageVersion("cutpointr")))' > ${software}__r-cutpointr.version.txt
-    Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
-    Rscript -e 'cat(paste(packageVersion("dplyr")))' > ${software}__r-dplyr.version.txt
-    Rscript -e 'cat(paste(packageVersion("GenomicAlignments")))' > ${software}__bioconductor-GenomicAlignments.version.txt
-    Rscript -e 'cat(paste(packageVersion("glmnet")))' > ${software}__r-glmnet.version.txt
-    Rscript -e 'cat(paste(packageVersion("stringr")))' > ${software}__r-stringr.version.txt
-    Rscript -e 'cat(paste(packageVersion("tictoc")))' > ${software}__tictoc.version.txt
+    ann_splices.py \\
+        -i ${sicilian_called_splices} \\
+        -o ${sample_id}__sicilian_called_splice_juncs__annotated.tsv \\
+        -e ${exon_bounds} \\
+        -s ${splices}
+    python -c 'import pandas; print(pandas.__version__)' > ${software}__pandas.version.txt
     """
 }
