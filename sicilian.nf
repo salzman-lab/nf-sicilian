@@ -240,10 +240,8 @@ workflow SICILIAN {
 
 
     SICILIAN_PROCESS_CI_10X (
-        SICILIAN_CONSOLIDATE.out.glm_consolidated,
         // Take the 2nd (1-index) item, which is the file only, and not the sample id
-        ch_reads_per_gene.collect{ it[1] },
-        ch_class_input.collect{ it[1] },
+        ch_class_input.collect().transpose(),
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,

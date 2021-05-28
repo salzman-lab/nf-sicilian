@@ -75,6 +75,7 @@ process SICILIAN_GLM {
     def tenx = params.tenx ? '1' : '0'
     def stranded = params.stranded ? '1' : '0'
     """
+    ls -lha
     GLM_script_light.R \\
         $outdir \\
         $gtf \\
