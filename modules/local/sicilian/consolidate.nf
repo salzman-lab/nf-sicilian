@@ -68,6 +68,7 @@ process SICILIAN_CONSOLIDATE {
     def run_name = './'
     def tenx = params.tenx ? "1" : "0"
     """
+    ls -lha
     consolidate_GLM_output_files.R \\
         ${input_path} \\
         ${run_name} \\
