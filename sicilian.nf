@@ -23,16 +23,11 @@ need_to_align = ! (star_output_params || star_output_params_paths)
 run_glm = !( params.sicilian_glm_output_paths || params.sicilian_glm_output )
 run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
 
-println 'star_output_params:'
-println star_output_params
-println 'star_output_params_paths:'
-println star_output_params_paths
 /*
  * Create a channel for input read files
  */
 if (need_to_align) {
     // No star
-    println 'reading inputs'
     if (params.input_paths) {
         if (params.single_end) {
             ch_reads = Channel.from(params.input_paths)
@@ -48,7 +43,6 @@ if (need_to_align) {
             .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
     }
 } else {
-    println 'no star input params'
     if (params.star_bam_paths) {
         ch_bam = Channel.from(params.star_bam_paths)
             .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
