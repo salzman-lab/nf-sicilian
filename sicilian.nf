@@ -19,14 +19,14 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 star_output_params = params.star_sj_out_tab && params.reads_per_gene && params.star_chimeric_junction && params.star_bam
 star_output_params_paths = params.star_bam_paths && params.star_sj_out_tab_paths && params.star_reads_per_gene_paths && params.star_chimeric_junction_paths
 
-need_to_align = ! (star_output_params || star_output_params_paths)
+run_align = ! (star_output_params || star_output_params_paths)
 run_glm = !( params.sicilian_glm_output_paths || params.sicilian_glm_output )
 run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
 
 /*
  * Create a channel for input read files
  */
-if (need_to_align) {
+if (run_align) {
     // No star
     if (params.input_paths) {
         if (params.single_end) {
@@ -159,7 +159,7 @@ workflow SICILIAN {
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
 
-    if (need_to_align) {
+    if (run_align) {
         if (!params.skip_umitools) {
         /*
         * MODULE: Create a whitelist of UMIs from the data
