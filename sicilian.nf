@@ -221,15 +221,17 @@ workflow SICILIAN {
     }
 
     SICILIAN_CONSOLIDATE(
-        ch_glm_output.collect{it[1] }.dump(tag: 'ch_glm_output_collected')
+        // Take the 2nd (1-index) item, which is the file only, and not the sample id
+        ch_glm_output.collect{ it[1] }.dump(tag: 'ch_glm_output_collected')
     )
     ch_software_versions = ch_software_versions.mix(SICILIAN_CONSOLIDATE.out.version.ifEmpty(null))
 
 
     SICILIAN_PROCESS_CI_10X (
         SICILIAN_CONSOLIDATE.out.glm_consolidated,
-        ch_reads_per_gene.collect(),
-        ch_class_input.collect(),
+        // Take the 2nd (1-index) item, which is the file only, and not the sample id
+        ch_reads_per_gene.collect{ it[1] },
+        ch_class_input.collect{ it[1] },
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
