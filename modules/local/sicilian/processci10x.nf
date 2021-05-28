@@ -72,6 +72,7 @@ process SICILIAN_PROCESS_CI_10X {
     def output_path = './'
     def run_name = './'
     """
+    ls -lha
     Process_CI_10x.py \\
         -d $output_path \\
         -o $run_name \\
