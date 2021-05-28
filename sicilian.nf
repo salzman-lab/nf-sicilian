@@ -16,23 +16,71 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
+star_output_params = params.star_sj_out_tab && params.reads_per_gene && params.star_chimeric_junction && params.star_bam
+star_output_params_paths = params.star_bam_paths && params.star_sj_out_tab_paths && params.star_reads_per_gene_paths && params.star_chimeric_junction_paths
+
+need_to_align = ! (star_output_params || star_output_params_paths)
+run_glm = !( params.sicilian_glm_output_paths || params.sicilian_glm_output )
+run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
+
+println 'star_output_params:'
+println star_output_params
+println 'star_output_params_paths:'
+println star_output_params_paths
 /*
  * Create a channel for input read files
  */
-if (params.input_paths) {
-    if (params.single_end) {
-        ch_reads = Channel.from(params.input_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+if (need_to_align) {
+    // No star
+    println 'reading inputs'
+    if (params.input_paths) {
+        if (params.single_end) {
+            ch_reads = Channel.from(params.input_paths)
+                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+        } else {
+            ch_reads = Channel.from(params.input_paths)
+                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
+                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+        }
     } else {
-        ch_reads = Channel.from(params.input_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+        ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
+            .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
     }
 } else {
-    ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
-        .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
+    println 'no star input params'
+    if (params.star_bam_paths) {
+        ch_bam = Channel.from(params.star_bam_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.star_bam_paths was empty - no input files supplied' }
+    }   
+    if (params.star_sj_out_tab_paths) {
+        ch_sj_out_tab = Channel.from(params.star_sj_out_tab_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.star_sj_out_tab_paths was empty - no input files supplied' }
+    }
+    if (params.star_reads_per_gene_paths) {
+        ch_reads_per_gene = Channel.from(params.star_reads_per_gene_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.star_reads_per_gene_paths was empty - no input files supplied' }
+    }
+    if (params.star_chimeric_junction_paths) {
+        ch_chimeric_junction = Channel.from(params.star_chimeric_junction_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.star_chimeric_junction_paths was empty - no input files supplied' }
+    }
+    if (params.sicilian_class_input_paths) {
+        ch_class_input = Channel.from(params.sicilian_class_input_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.ch_class_input was empty - no input files supplied' }
+    }
+    if (params.sicilian_glm_output_paths) {
+        ch_glm_output = Channel.from(params.sicilian_glm_output_paths)
+            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+            .ifEmpty { exit 1, 'params.sicilian_glm_output_paths was empty - no input files supplied' }
+    }
 }
+
 
 //
 // Create channel for domain file
@@ -109,7 +157,16 @@ workflow SICILIAN {
     // Example usage: https://github.com/nf-core/rnaseq/blob/0fcbb0ac491ecb8a80ef879c4f3dad5f869021f9/workflows/rnaseq.nf#L250
     // Subwokflow: https://github.com/nf-core/rnaseq/blob/master/subworkflows/local/input_check.nf
 
-    if (!params.skip_umitools) {
+    //
+    // SUBWORKFLOW: Uncompress and prepare reference genome files
+    //
+    PREPARE_GENOME ()
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.star_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
+
+
+    if (need_to_align) {
+        if (!params.skip_umitools) {
         /*
         * MODULE: Create a whitelist of UMIs from the data
         */
@@ -121,54 +178,64 @@ workflow SICILIAN {
 
         UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
         ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
-    } else {
-        umi_reads = ch_reads
+        } else {
+            umi_reads = ch_reads
+        }
+
+        STAR_ALIGN (
+            umi_reads,
+            PREPARE_GENOME.out.star_index,
+            PREPARE_GENOME.out.gtf,
+        )
+        ch_software_versions = ch_software_versions.mix(STAR_ALIGN.out.version.first().ifEmpty(null))
+        ch_bam = STAR_ALIGN.out.bam
+        ch_sj_out_tab = STAR_ALIGN.out.sj_out_tab
+        ch_chimeric_junction = STAR_ALIGN.out.chimeric_out_junction
+        ch_reads_per_gene = STAR_ALIGN.out.reads_per_gene
     }
 
-    //
-    // SUBWORKFLOW: Uncompress and prepare reference genome files
-    //
-    PREPARE_GENOME ()
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.star_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
-    STAR_ALIGN (
-        umi_reads,
-        PREPARE_GENOME.out.star_index,
-        PREPARE_GENOME.out.gtf,
-    )
-    ch_software_versions = ch_software_versions.mix(STAR_ALIGN.out.version.first().ifEmpty(null))
 
-    SICILIAN_CLASSINPUT (
-        STAR_ALIGN.out.bam,
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.sicilian_annotator,
-    )
-    ch_software_versions = ch_software_versions.mix(SICILIAN_CLASSINPUT.out.version.ifEmpty(null))
+    if (run_class_input) {
+        SICILIAN_CLASSINPUT (
+            ch_bam,
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.sicilian_annotator,
+        )
+        ch_software_versions = ch_software_versions.mix(SICILIAN_CLASSINPUT.out.version.ifEmpty(null))
+        ch_class_input = SICILIAN_CLASSINPUT.out.class_input
+    }
 
-    SICILIAN_GLM (
-        PREPARE_GENOME.out.gtf,
-        ch_domain,
-        PREPARE_GENOME.out.sicilian_exon_bounds,
-        PREPARE_GENOME.out.sicilian_splices,
-        STAR_ALIGN.out.sj_out_tab,
-        STAR_ALIGN.out.chimeric_out_junction,
-        STAR_ALIGN.out.reads_per_gene,
-        SICILIAN_CLASSINPUT.out.class_input
-    )
-    ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
+    if (run_glm) {
+        ch_classinput_sjouttab_chimericjunctions_readspergene = ch_class_input.join(
+            ch_sj_out_tab
+        ).join( 
+            ch_chimeric_junction
+        ).join(
+            ch_reads_per_gene
+        )
 
+        SICILIAN_GLM (
+            PREPARE_GENOME.out.gtf,
+            ch_domain,
+            PREPARE_GENOME.out.sicilian_exon_bounds,
+            PREPARE_GENOME.out.sicilian_splices,
+            ch_classinput_sjouttab_chimericjunctions_readspergene
+        )
+        ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
+        ch_glm_output = SICILIAN_GLM.out.glm_output
+    }
 
     SICILIAN_CONSOLIDATE(
-        SICILIAN_GLM.out.glm_output.collect()
+        ch_glm_output.collect().dump(tag: 'ch_glm_output_collected')
     )
     ch_software_versions = ch_software_versions.mix(SICILIAN_CONSOLIDATE.out.version.ifEmpty(null))
 
 
     SICILIAN_PROCESS_CI_10X (
         SICILIAN_CONSOLIDATE.out.glm_consolidated,
-        STAR_ALIGN.out.reads_per_gene.collect(),
-        SICILIAN_CLASSINPUT.out.class_input.collect(),
+        ch_reads_per_gene.collect(),
+        ch_class_input.collect(),
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
