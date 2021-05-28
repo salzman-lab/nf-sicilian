@@ -50,10 +50,7 @@ process SICILIAN_GLM {
     path domain
     path exon_bounds
     path splices
-    tuple val(sample_id), path(sj_out_tab)
-    tuple val(sample_id), path(chimeric_out_junction)
-    tuple val(sample_id), path(reads_per_gene)
-    tuple val(sample_id), path(class_input)
+    tuple val(sample_id), path(class_input), path(sj_out_tab), path(chimeric_out_junction), path(reads_per_gene)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
