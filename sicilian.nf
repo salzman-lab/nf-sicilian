@@ -227,7 +227,7 @@ workflow SICILIAN {
     }
 
     SICILIAN_CONSOLIDATE(
-        ch_glm_output.collect( it[1] ).dump(tag: 'ch_glm_output_collected')
+        ch_glm_output.collect{it[1] }.dump(tag: 'ch_glm_output_collected')
     )
     ch_software_versions = ch_software_versions.mix(SICILIAN_CONSOLIDATE.out.version.ifEmpty(null))
 
