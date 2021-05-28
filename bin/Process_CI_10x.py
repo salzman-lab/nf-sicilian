@@ -54,7 +54,13 @@ def add_genom_counts(df, lanes, data_path, ensembl_name):
 def get_args():
     parser = argparse.ArgumentParser(description="get method and number of files")
     parser.add_argument(
-        "-d", "--data_paths", nargs="*", help="data paths for processing"
+        "-i", "--class-inputs", nargs="*", help="class input files for each sample"
+    )
+    parser.add_argument(
+        "-n",
+        "--sample-names",
+        nargs="*",
+        help="Names to use for each class input file, e.g. the name of the sample",
     )
     parser.add_argument("-o", "--outname", help="where to save output")
     parser.add_argument("-g", "--gtf", help="gtf file for annotations")
@@ -192,70 +198,55 @@ def main():
     dp_dict = get_names(args.data_paths, args.prefix2)
     print("dp_dict", dp_dict)
 
-    for data_path in tqdm(args.data_paths):
-        lane_dict = {}
-        for name in tqdm(dp_dict[data_path]["names"]):
-            lane = name[:-1]  #  name[:-1]
-            print("name1", name)
-            if lane not in lane_dict:
-                lane_dict[lane] = []
-            lane_dict[lane].append(name)
-        #  lane_dict = {'P1_3': ['P1_3_S1_L001', 'P1_3_S1_L002'], "P1_5" : ["P1_5_S3_L001"]}
-        print("lane_dict", lane_dict)
+    for sample_name, filename in tqdm(zip(args.sample_names, args.class_inputs)):
+        df = pd.read_csv(
+            filename,
+            dtype={
+                "p_predicted_glmnet": "float16",
+                "p_predicted_glmnet_corrected": "float16",
+                "chrR1A": "category",
+                "chrR1B": "category",
+                "readClassR1": "category",
+                "geneR1A_uniq": "category",
+                "geneR1A": "category",
+                "geneR1B": "category",
+                "junc_cdf_glmnet": "float16",
+                "Organ": "category",
+                "splice_ann": "bool",
+                "both_ann": "bool",
+                "exon_annR1A": "bool",
+                "exon_annR1B": bool,
+            },
+            usecols=[
+                "refName_newR1",
+                "UMI",
+                "barcode",
+                "geneR1A_uniq",
+                "juncPosR1A",
+                "juncPosR1B",
+                "chrR1A",
+                "chrR1B",
+                "NHR1A",
+                "fileTypeR1",
+            ],
+            sep="\t",
+        )
 
-        for lane in tqdm(lane_dict):
-
-            dfs = []
-            for name in lane_dict[lane]:
-                print("name2", name, str(timedelta(seconds=time.time() - t0)))
-                try:
-                    dfs.append(
-                        pd.read_csv(
-                            "{}{}/class_input.tsv".format(data_path, name),
-                            dtype={
-                                "p_predicted_glmnet": "float16",
-                                "p_predicted_glmnet_corrected": "float16",
-                                "chrR1A": "category",
-                                "chrR1B": "category",
-                                "readClassR1": "category",
-                                "geneR1A_uniq": "category",
-                                "geneR1A": "category",
-                                "geneR1B": "category",
-                                "junc_cdf_glmnet": "float16",
-                                "Organ": "category",
-                                "splice_ann": "bool",
-                                "both_ann": "bool",
-                                "exon_annR1A": "bool",
-                                "exon_annR1B": bool,
-                            },
-                            usecols=[
-                                "refName_newR1",
-                                "UMI",
-                                "barcode",
-                                "geneR1A_uniq",
-                                "juncPosR1A",
-                                "juncPosR1B",
-                                "chrR1A",
-                                "chrR1B",
-                                "NHR1A",
-                                "fileTypeR1",
-                            ],
-                            sep="\t",
-                        )
-                    )
-                except:
-                    print(name, "not processed")
-
-            df = pd.concat(dfs)
-            df.reset_index(drop=True, inplace=True)
-            df = process_lane(
-                df, inc_refNames, meta_df, exon_bounds, splices, lane, args.include_meta
-            )
-            print(df.columns)
-            df["channel"] = lane
-            print("processed lane")
-            print("df.shape", df.shape)
-            all_dfs.append(df)
+        df.reset_index(drop=True, inplace=True)
+        df = process_lane(
+            df,
+            inc_refNames,
+            meta_df,
+            exon_bounds,
+            splices,
+            sample_name,
+            args.include_meta,
+        )
+        print(df.columns)
+        df["channel"] = sample_name
+        print(f"processed lane: {sample_name}")
+        print("df.shape", df.shape)
+        all_dfs.append(df)
 
     df = pd.concat(all_dfs)
 
