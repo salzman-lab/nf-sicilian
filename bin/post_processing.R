@@ -3,11 +3,12 @@
 library(data.table)
 
 args <- commandArgs(trailingOnly = TRUE)
-directory = args[1]
-run = args[2] 
+consolidated_GLM_file = args[1]
+SICILIAN_junctions_file = args[2] 
+outfilename = args[3]
 
-consolidated_GLM_file = paste(directory,run,"_GLM_outputs_consolidated.txt",sep="")
-SICILIAN_junctions_file = paste(directory,run,".tsv",sep="")
+# consolidated_GLM_file = paste(directory,run,"_GLM_outputs_consolidated.txt",sep="")
+# SICILIAN_junctions_file = paste(directory,run,".tsv",sep="")
 is.SE = 1
 
 #########  read in input files #################
@@ -50,4 +51,4 @@ if (is.SE==1){
   SICILIAN_junctions = merge(SICILIAN_junctions,consolidated_GLM_uniq[,list(refName_newR1,frac_passed_samples,emp.p_glmnet_corrected_constrained_median,called)],by.x="refName_newR1",by.y="refName_newR1",all.x=TRUE,all.y=FALSE)
 }
 
-write.table(SICILIAN_junctions,paste(directory,"/",run,"_with_postprocessing.txt",sep=""),row.names=FALSE,sep="\t",quote=FALSE)
+write.table(SICILIAN_junctions,outfilename,sep=""),row.names=FALSE,sep="\t",quote=FALSE)
