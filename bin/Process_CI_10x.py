@@ -177,34 +177,17 @@ def main():
     t0 = time.time()
     args = get_args()
     inc_refNames = []
-    mult_lanes = False
-    add_gen_count = False
-    col = "emp.p_glmnet_constrained"
 
-    gtf_file = args.gtf
     exon_bounds = pickle.load(open(args.exon, "rb"))
     splices = pickle.load(open(args.splice, "rb"))
 
     exon_bounds = defaultdict(set, exon_bounds)
-
     splices = defaultdict(set, splices)
-
-    if add_gen_count:
-        ensembl_name = ensembl_name_map(gtf_file)
 
     meta_df = []
     if args.include_meta:
         meta_df = pd.read_csv(args.data_paths[0] + "meta.tsv", sep="\t")
 
-    use_cols = [
-        "juncPosR1A",
-        "juncPosR1B",
-        "refName_newR1",
-        "geneR1A",
-        "UMI",
-        "barcode",
-        "fileTypeR1",
-    ]
     all_dfs = []
     dp_dict = get_names(args.data_paths, args.prefix2)
     print("dp_dict", dp_dict)
@@ -270,8 +253,6 @@ def main():
             )
             print(df.columns)
             df["channel"] = lane
-            if add_gen_count:
-                df = add_genom_counts(df, lane_dict[lane], data_path, ensembl_name)
             print("processed lane")
             print("df.shape", df.shape)
             all_dfs.append(df)
