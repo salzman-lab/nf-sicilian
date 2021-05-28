@@ -55,7 +55,7 @@ process SICILIAN_GLM {
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     tuple val(sample_id), path("*GLM_output.txt"), emit: glm_output
-    tuple val(sample_id), path("*sicilian_called_splice_juncs__annotated.tsv"), emit: sicilian_called_splices
+    tuple val(sample_id), path("*sicilian_called_splice_juncs.tsv"), emit: sicilian_called_splices
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
