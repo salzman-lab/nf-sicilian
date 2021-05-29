@@ -44,9 +44,7 @@ process SICILIAN_PROCESS_CI_10X {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path glm_consolidated
-    path reads_per_gene   // collected across all files
-    path class_inputs     // collected across all files
+    tuple val(sample_ids), path(class_inputs)     // collected across all files
     path gtf
     path exon_bounds
     path splices
@@ -69,13 +67,14 @@ process SICILIAN_PROCESS_CI_10X {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    def output_path = './'
+    def output_path = 'processed_ci_10x.tsv'
     def run_name = './'
     """
     ls -lha
     Process_CI_10x.py \\
-        -d $output_path \\
-        -o $run_name \\
+        --class-inputs $class_inputs \\
+        --sample-names $sample_ids \\
+        --output-tsv $output_path \\
         -g $gtf \\
         -e $exon_bounds \\
         -s $splices

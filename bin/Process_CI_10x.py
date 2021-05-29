@@ -62,7 +62,7 @@ def get_args():
         nargs="*",
         help="Names to use for each class input file, e.g. the name of the sample",
     )
-    parser.add_argument("-o", "--outname", help="where to save output")
+    parser.add_argument("-o", "--output-tsv", help="filename to output tsv")
     parser.add_argument("-g", "--gtf", help="gtf file for annotations")
     parser.add_argument(
         "-e", "--exon", help="pickle file for annotated exon boundaries"
@@ -191,11 +191,11 @@ def main():
     splices = defaultdict(set, splices)
 
     meta_df = []
-    if args.include_meta:
-        meta_df = pd.read_csv(args.data_paths[0] + "meta.tsv", sep="\t")
+    # if args.include_meta:
+    #     meta_df = pd.read_csv(args.data_paths[0] + "meta.tsv", sep="\t")
 
     all_dfs = []
-    dp_dict = get_names(args.data_paths, args.prefix2)
+    # dp_dict = get_names(args.data_paths, args.prefix2)
     print("dp_dict", dp_dict)
 
     for sample_name, filename in tqdm(zip(args.sample_names, args.class_inputs)):
@@ -253,11 +253,8 @@ def main():
     for c in df.columns:
         if str(df[c].dtype)[0] == "I":
             df[c] = df[c].astype("float32")
-    df[[c for c in df.columns if c != "cell_gene_test"]].to_parquet(
-        args.data_paths[0] + args.outname + args.prefix2 + ".pq"
-    )
     df[[c for c in df.columns if c != "cell_gene_test"]].to_csv(
-        args.data_paths[0] + args.outname + args.prefix2 + ".tsv", sep="\t", index=False
+        args.output_tsv, sep="\t", index=False
     )
 
 
