@@ -49,7 +49,7 @@ process SICILIAN_POSTPROCESS {
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    path "*_with_postprocessing.txt", emit: postprocessed_txt
+    path "*postprocessed.txt", emit: postprocessed_txt
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -64,12 +64,13 @@ process SICILIAN_POSTPROCESS {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    def output_path = './'
+    def output_filename = "postprocessed.txt"
     def run_name = './'
     """
     post_processing.R \\
-        $output_path \\
-        $run_name \\
+        $glm_consolidated \\
+        $sicilian_junctions_tsv \\
+        $output_filename
     ls -lha
     Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
     """
