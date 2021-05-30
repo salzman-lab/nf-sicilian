@@ -196,7 +196,7 @@ def main():
 
     all_dfs = []
     # dp_dict = get_names(args.data_paths, args.prefix2)
-    print("dp_dict", dp_dict)
+    # print("dp_dict", dp_dict)
 
     for sample_name, filename in tqdm(zip(args.sample_names, args.class_inputs)):
         df = pd.read_csv(
