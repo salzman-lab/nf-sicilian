@@ -51,4 +51,4 @@ if (is.SE==1){
   SICILIAN_junctions = merge(SICILIAN_junctions,consolidated_GLM_uniq[,list(refName_newR1,frac_passed_samples,emp.p_glmnet_corrected_constrained_median,called)],by.x="refName_newR1",by.y="refName_newR1",all.x=TRUE,all.y=FALSE)
 }
 
-write.table(SICILIAN_junctions,outfilename,sep=""),row.names=FALSE,sep="\t",quote=FALSE)
+write.table(SICILIAN_junctions,outfilename,row.names=FALSE,sep="\t",quote=FALSE)
