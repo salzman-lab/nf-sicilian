@@ -44,7 +44,8 @@ process SICILIAN_PROCESS_CI_10X {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(sample_ids), path(class_inputs)     // collected across all files
+    val sample_ids     // collected across all files
+    path class_inputs  // collected across all files
     path gtf
     path exon_bounds
     path splices
@@ -73,7 +74,7 @@ process SICILIAN_PROCESS_CI_10X {
     ls -lha
     Process_CI_10x.py \\
         --class-inputs $class_inputs \\
-        --sample-names $sample_ids \\
+        --sample-names ${sample_ids.join(' ')} \\
         --output-tsv $output_path \\
         -g $gtf \\
         -e $exon_bounds \\
