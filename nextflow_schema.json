@@ -63,7 +63,8 @@
                     "type": "string"
                 },
                 "star_index": {
-                    "type": "string"
+                    "type": "string",
+                    "fa_icon": "fas fa-address-book"
                 },
                 "igenomes_base": {
                     "type": "string",
@@ -78,6 +79,56 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
+                "save_reference": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "umi_tools_options": {
+            "title": "UMI tools options",
+            "type": "object",
+            "description": "Parameters to input for UMI cell/molecular barcode demultiplexing",
+            "default": "",
+            "fa_icon": "fas fa-barcode",
+            "properties": {
+                "save_umi_intermeds": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-save",
+                    "description": "Boolean to save UMI intermediate files"
+                },
+                "umitools_bc_pattern": {
+                    "type": "string",
+                    "default": "CCCCCCCCCCCCCCNNNNNNNNNNNN",
+                    "description": "Barcode pattern to pass to UMI tools for whitelisting",
+                    "fa_icon": "fas fa-barcode"
+                },
+                "skip_umitools": {
+                    "type": "boolean",
+                    "description": "Don't run UMI tools -- assumed that input data is the R2 output of UMItools extract"
+                }
+            }
+        },
+        "alignment": {
+            "title": "Alignment",
+            "type": "object",
+            "description": "Options to pass to STAR aligner",
+            "default": "",
+            "properties": {
+                "save_align_intermeds": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Boolean to indicate saving intermediate bam alignment files (on by default)"
+                },
+                "star_ignore_sjdbgtf": {
+                    "type": "boolean"
+                },
+                "min_mapped_reads": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Minimum percent of reads mapping per sample"
                 }
             }
         },
@@ -87,11 +138,6 @@
             "description": "Options to input for SICILIAN Splicing pipeline",
             "default": "",
             "properties": {
-                "umitools_bc_pattern": {
-                    "type": "string",
-                    "default": "CCCCCCCCCCCCCCNNNNNNNNNNNN",
-                    "description": "Barcode pattern to pass to UMI tools for whitelisting"
-                },
                 "tenx": {
                     "type": "boolean",
                     "description": "Boolean to indicate the data is from 10x genomics"
@@ -109,6 +155,9 @@
                     "type": "string",
                     "description": "Annotator pickle file",
                     "default": "False"
+                },
+                "splices": {
+                    "type": "string"
                 },
                 "exon_bounds": {
                     "type": "string",
@@ -202,6 +251,12 @@
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                },
+                "skip_multiqc": {
+                    "type": "string"
+                },
+                "enable_conda": {
+                    "type": "string"
                 }
             }
         },
@@ -304,6 +359,12 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
+            "$ref": "#/definitions/umi_tools_options"
+        },
+        {
+            "$ref": "#/definitions/alignment"
+        },
+        {
             "$ref": "#/definitions/sicilian_options"
         },
         {
@@ -317,10 +378,43 @@
         }
     ],
     "properties": {
-        "splicesites": {
+        "star_bam": {
             "type": "string"
         },
-        "enable_conda": {
+        "star_sj_out_tab": {
+            "type": "string"
+        },
+        "reads_per_gene": {
+            "type": "string"
+        },
+        "star_chimeric_junction": {
+            "type": "string"
+        },
+        "star_bam_paths": {
+            "type": "string"
+        },
+        "star_sj_out_tab_paths": {
+            "type": "string"
+        },
+        "star_reads_per_gene_paths": {
+            "type": "string"
+        },
+        "star_chimeric_junction_paths": {
+            "type": "string"
+        },
+        "sicilian_class_input": {
+            "type": "string"
+        },
+        "sicilian_class_input_paths": {
+            "type": "string"
+        },
+        "sicilian_glm_output": {
+            "type": "string"
+        },
+        "sicilian_glm_output_paths": {
+            "type": "string"
+        },
+        "seq_center": {
             "type": "string"
         }
     }

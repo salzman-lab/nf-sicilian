@@ -1,0 +1,16 @@
+{
+    "input": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/umitools/extract/*_{1,2}.fastq.gz",
+    "single_end": true,
+    "outdir": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome",
+    "email": "olga.botvinnik@czbiohub.org",
+    "fasta": "http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M17/GRCm38.p6.genome.fa.gz",
+    "gtf": "s3://salzman-lab/sicilian-references/mouse/mm10/gtf_file/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz",
+    "star_index": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/genome/index/star/",
+    "tenx": true,
+    "stranded": true,
+    "domain": "s3://salzman-lab/hg38_ref_files/domain_file.txt",
+    "annotator": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_gene_names.pkl",
+    "exon_bounds": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_exon_bounds.pkl",
+    "splices": "s3://salzman-lab/nf-sicilian-outputs/aws-maca-full-genome/sicilian/GCF_000001635_splices.pkl",
+    "skip_umitools": true
+}

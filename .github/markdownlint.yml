@@ -10,3 +10,4 @@ no-inline-html:
         - kbd
         - details
         - summary
+no-trailing-punctuation: false

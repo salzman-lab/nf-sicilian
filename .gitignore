@@ -8,8 +8,11 @@ testing/
 testing*
 *.pyc
 
-pipeline_dag.svg*
-execution_trace.txt*
-execution_report.html*
-execution_timeline.html*
+pipeline_dag*.svg*
+execution_trace*.txt*
+execution_report*.html*
+execution_timeline*.html*
 settings.json
+
+# Weirdly made s3 path
+'s3:/'

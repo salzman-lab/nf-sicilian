@@ -1,10 +1,12 @@
 FROM nfcore/base:1.14
-LABEL authors="Julia Salzman Lab" \
+LABEL authors="Olga Botvinnik" \
       description="Docker image containing all software requirements for the nf-core/sicilian pipeline"
 
 # Install the conda environment
 COPY environment.yml /
-RUN conda env create --quiet -f /environment.yml && conda clean -a
+# Install "mamba" for faster dependency resolution and build times
+RUN conda install -c conda-forge mamba
+RUN mamba env create --quiet -f /environment.yml && conda clean -a
 
 # Add conda installation dir to PATH (instead of doing 'conda activate')
 ENV PATH /opt/conda/envs/nf-core-sicilian-1.0dev/bin:$PATH
