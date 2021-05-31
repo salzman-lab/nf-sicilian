@@ -1,1 +1,3 @@
 conda_dockerfile: false
+files_unchanged:
+  .github/markdownlint.yml
