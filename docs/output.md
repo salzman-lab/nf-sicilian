@@ -17,10 +17,11 @@ and processes data using the following steps:
 * [MultiQC](#multiqc) - Aggregate report describing results from the whole pipeline
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 * [Alignment](#alignment)
-    * [STAR](#star) - Fast spliced aware genome alignment and transcriptome quantification
+  * [STAR](#star) - Fast spliced aware genome alignment and transcriptome quantification
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
-    * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
-    * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+  * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
+  * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+
 ## UMI-tools
 
 [UMI-tools](https://github.com/CGATOxford/UMI-tools) contains tools for dealing with Unique Molecular Identifiers (UMIs)/Random Molecular Tags (RMTs) and single cell RNA-Seq cell barcodes. Two commands are used here: `whitelist` and `extract`.
@@ -70,18 +71,18 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `star/`
-    * `*.Aligned.out.bam`: If `--save_align_intermeds` is specified the original BAM file containing read alignments to the reference genome will be placed in this directory.
-    * `*.Aligned.toTranscriptome.out.bam`: If `--save_align_intermeds` is specified the original BAM file containing read alignments to the transcriptome will be placed in this directory.
+  * `*.Aligned.out.bam`: If `--save_align_intermeds` is specified the original BAM file containing read alignments to the reference genome will be placed in this directory.
+  * `*.Aligned.toTranscriptome.out.bam`: If `--save_align_intermeds` is specified the original BAM file containing read alignments to the transcriptome will be placed in this directory.
 * `star/log/`
-    * `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
-    * `*.Log.final.out`: STAR alignment report containing the mapping results summary.
-    * `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
+  * `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
+  * `*.Log.final.out`: STAR alignment report containing the mapping results summary.
+  * `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
 * `star/unmapped/`
-    * `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
+  * `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
 
 </details>
 
-[STAR](https://github.com/alexdobin/STAR) is a read aligner designed for splice aware mapping typical of RNA sequencing data. STAR stands for *S*pliced *T*ranscripts *A*lignment to a *R*eference, and has been shown to have high accuracy and outperforms other aligners by more than a factor of 50 in mapping speed, but it is memory intensive. 
+[STAR](https://github.com/alexdobin/STAR) is a read aligner designed for splice aware mapping typical of RNA sequencing data. STAR stands for *S*pliced *T*ranscripts *A*lignment to a *R*eference, and has been shown to have high accuracy and outperforms other aligners by more than a factor of 50 in mapping speed, but it is memory intensive.
 
 ## SICILIAN
 
@@ -89,16 +90,15 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `sicilian/`
-    * `*.Aligned.out.bam`: The original BAM file containing read alignments to the reference genome will be placed in this directory.
+  * `*.Aligned.out.bam`: The original BAM file containing read alignments to the reference genome will be placed in this directory.
 * `star/log/`
-    * `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
-    * `*.Log.final.out`: STAR alignment report containing the mapping results summary.
-    * `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
+  * `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
+  * `*.Log.final.out`: STAR alignment report containing the mapping results summary.
+  * `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
 * `star/unmapped/`
-    * `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
+  * `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
 
 [SICILIAN](https://github.com/salzmanlab/SICILIAN/) (SIngle Cell precIse spLice estImAtioN) is a statistical method for identifying RNA splice junctions using alignments reported from a spliced aligner. SICILIAN is currently implemented for the STAR aligner, and will be adapted to more spliced aligner in the near future.
-
 
 ### Reference genome files
 
@@ -106,14 +106,13 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `genome/`
-    * `*.fa`, `*.gtf`, `*.gff`, `*.bed`, `.tsv`: If the `--save_reference` parameter is provided then all of the genome reference files will be placed in this directory.
+  * `*.fa`, `*.gtf`, `*.gff`, `*.bed`, `.tsv`: If the `--save_reference` parameter is provided then all of the genome reference files will be placed in this directory.
 * `genome/index/`
-    * `star/`: Directory containing STAR indices.
-    * `sicilian/`: Directory containing SICILIAN reference files
-      * `*exon_bounds.pkl`:  is an optional input for SICILIAN and is used to determine whether or not the splice sites in a junction are annotated exon boundaries
-      * `*gene_names.pkl`: is a required input for SICILIAN and is used to add gene names to junction ids
-      * `*splices.pkl`: is an optional input for SICILIAN and is used to determine whether or not the splice site is annotated in the annotation file
-
+  * `star/`: Directory containing STAR indices.
+  * `sicilian/`: Directory containing SICILIAN reference files
+    * `*exon_bounds.pkl`:  is an optional input for SICILIAN and is used to determine whether or not the splice sites in a junction are annotated exon boundaries
+    * `*gene_names.pkl`: is a required input for SICILIAN and is used to add gene names to junction ids
+    * `*splices.pkl`: is an optional input for SICILIAN and is used to determine whether or not the splice site is annotated in the annotation file
 
 </details>
 
