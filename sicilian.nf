@@ -10,7 +10,7 @@ params.summary_params = [:]
 
 // Check input path parameters to see if they exist
 checkPathParamList = [
-    params.input, 
+    // params.input, 
     // params.multiqc_config,
     params.gtf, 
 ]
