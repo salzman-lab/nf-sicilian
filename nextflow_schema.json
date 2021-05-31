@@ -413,6 +413,9 @@
         },
         "sicilian_glm_output_paths": {
             "type": "string"
+        },
+        "seq_center": {
+            "type": "string"
         }
     }
 }
