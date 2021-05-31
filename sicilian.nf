@@ -116,6 +116,7 @@ def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
 include { UMITOOLS_EXTRACT         } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
+include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome' addParams( 
     genome_options: publish_genome_options, 
     index_options: publish_index_options, 
     gffread_options: gffread_options,  
@@ -265,21 +266,16 @@ workflow SICILIAN {
 
 
     ch_software_versions
-        // .dump(tag: 'ch_software_versions')
-        // .transpose()
-        // .dump(tag: 'ch_software_versions__transpose')
-        // .map { it -> if (it) [ it.baseName, it ] }
-        // .dump(tag: 'ch_software_versions__map')
-        // .groupTuple()
-        // .dump(tag: 'ch_software_versions__map__grouptuple')
-        // .map { it[1][0] }
-        // .dump(tag: 'ch_software_versions__map__grouptuple__map')
         .flatten()
-        .dump(tag: 'ch_software_versions__map__grouptuple__map__flatten')
+        .dump(tag: 'ch_software_versions__flatten')
+        .map { it -> if (it) [ it.baseName, it ] }
+        .dump(tag: 'ch_software_versions__flatten__map')
+        .groupTuple()
+        .dump(tag: 'ch_software_versions__flatten__map__grouptuple')
+        .map { it[1][0] }
+        .dump(tag: 'ch_software_versions__flatten__map__grouptuple__map')
         .collect()
-        .dump(tag: 'ch_software_versions__map__grouptuple__map__flatten__collect')
-        .unique { it.baseName }
-        .dump(tag: 'ch_software_versions__map__grouptuple__map__flatten__collect__unique')
+        .dump(tag: 'ch_software_versions__flatten__map__grouptuple__map__collect')
         .set { ch_software_versions }
 
     GET_SOFTWARE_VERSIONS (
