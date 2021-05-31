@@ -102,7 +102,9 @@ def get_names(data_paths, prefix):
                     print("exception", e)
                     dp_dict[data_path]["err"] += 1
         print(len(dp_dict[data_path]["names"]), "names")
-        print("dp_dict", dp_dict)
+        print(
+            "dp_dict",
+        )
     return dp_dict
 
 
