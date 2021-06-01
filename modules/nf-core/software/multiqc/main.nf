@@ -18,8 +18,12 @@ process MULTIQC {
     }
 
     input:
-    path multiqc_files
-
+    path multiqc_config
+    path multiqc_custom_config
+    path software_versions
+    path workflow_summary
+    path ('star/*')
+    
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
