@@ -23,20 +23,36 @@ if (params.input_csv) {
 }
 
 
+/*
+========================================================================================
+    SICILIAN-SPECIFIC FILES
+========================================================================================
+*/
 //
 // Create channel for domain file
 //
 ch_domain = file(params.domain, checkIfExists: true)
 
 
+/*
+========================================================================================
+    CONFIG FILES
+========================================================================================
+*/
+
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+
+/*
+========================================================================================
+    SET MODULE PARAMETERS
+========================================================================================
+*/
+
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 def umitools_whitelist_options = modules['umitools_whitelist']
 umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
-
-def umitools_extract_options    = modules['umitools_extract']
-umitools_extract_options.args  += params.umitools_bc_pattern     ? Utils.joinModuleArgs(["--bc-pattern='${params.umitools_bc_pattern}'"])       : ''
-if (params.save_umi_intermeds)  { umitools_extract_options.publish_files.put('fastq.gz','') }
 
 def star_genomegenerate_options = modules['star_genomegenerate']
 if (!params.save_reference)     { star_genomegenerate_options['publish_files'] = false }
@@ -44,41 +60,62 @@ if (!params.save_reference)     { star_genomegenerate_options['publish_files'] =
 def gffread_options         = modules['gffread']
 if (!params.save_reference) { gffread_options['publish_files'] = false }
 
-def star_align_options            = modules['star_align']
-def sicilian_createannotator_options            = modules['sicilian_createannotator']
+def sicilian_createannotator_options = modules['sicilian_createannotator']
 
-def sicilian_classinput_options    = modules['sicilian_classinput']
-sicilian_classinput_options.args   += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
+def star_align_options               = modules['star_align']
 
-def sicilian_glm_options    = modules['sicilian_glm']
-def sicilian_annsplices_options    = modules['sicilian_annsplices']
-def sicilian_consolidate_options    = modules['sicilian_consolidate']
-def sicilian_process_ci_10x_options    = modules['sicilian_process_ci_10x']
-def sicilian_postprocess_options    = modules['sicilian_postprocess']
+def sicilian_classinput_options      = modules['sicilian_classinput']
+sicilian_classinput_options.args    += params.tenx ? Utils.joinModuleArgs(['--UMI_bar']) : ''
+
+def sicilian_glm_options             = modules['sicilian_glm']
+def sicilian_annsplices_options      = modules['sicilian_annsplices']
+def sicilian_consolidate_options     = modules['sicilian_consolidate']
+def sicilian_process_ci_10x_options  = modules['sicilian_process_ci_10x']
+def sicilian_postprocess_options     = modules['sicilian_postprocess']
 
 def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
-// Import modules
-include { INPUT_CHECK              } from './subworkflows/local/input_check'    addParams( options: [:] )
-include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
-include { UMITOOLS_EXTRACT         } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
-include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
-include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome' addParams( 
+def multiqc_options         = modules['multiqc']
+multiqc_options.args       += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+if (params.skip_alignment)  { multiqc_options['publish_dir'] = '' }
+
+/*
+========================================================================================
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+========================================================================================
+*/
+include { INPUT_CHECK              } from './subworkflows/local/input_check'                    addParams( options: [:] )
+include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'                  addParams( options: umitools_whitelist_options )
+include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'               addParams( options: [publish_files : ['csv':'']]                      )
+include { PREPARE_GENOME           } from './subworkflows/local/prepare_genome'                 addParams( 
     genome_options: publish_genome_options, 
     index_options: publish_index_options, 
     gffread_options: gffread_options,  
     star_index_options: star_genomegenerate_options, 
     sicilian_createannotator_options: sicilian_createannotator_options )
-include { STAR_ALIGN          } from './modules/nf-core/software/star/align/main.nf'          addParams( options: star_align_options )
-include { SICILIAN_CLASSINPUT } from './modules/local/sicilian/classinput.nf'          addParams( options: sicilian_classinput_options )
-include { SICILIAN_GLM        } from './modules/local/sicilian/glm.nf'          addParams( options: sicilian_glm_options )
-include { SICILIAN_ANNSPLICES } from './modules/local/sicilian/annsplices.nf'          addParams( options: sicilian_annsplices_options )
+include { SICILIAN_CLASSINPUT } from './modules/local/sicilian/classinput.nf'        addParams( options: sicilian_classinput_options )
+include { SICILIAN_GLM        } from './modules/local/sicilian/glm.nf'               addParams( options: sicilian_glm_options )
+include { SICILIAN_ANNSPLICES } from './modules/local/sicilian/annsplices.nf'        addParams( options: sicilian_annsplices_options )
 
 // Postprocessing of SICILIAN output, to consolidate output from mutliple samples into one summary file
-include { SICILIAN_CONSOLIDATE    } from './modules/local/sicilian/consolidate.nf'          addParams( options: sicilian_consolidate_options )
-include { SICILIAN_PROCESS_CI_10X } from './modules/local/sicilian/processci10x.nf'          addParams( options: sicilian_process_ci_10x_options )
-include { SICILIAN_POSTPROCESS    } from './modules/local/sicilian/postprocess.nf'          addParams( options: sicilian_postprocess_options )
+include { SICILIAN_CONSOLIDATE    } from './modules/local/sicilian/consolidate.nf'  addParams( options: sicilian_consolidate_options )
+include { SICILIAN_PROCESS_CI_10X } from './modules/local/sicilian/processci10x.nf' addParams( options: sicilian_process_ci_10x_options )
+include { SICILIAN_POSTPROCESS    } from './modules/local/sicilian/postprocess.nf'  addParams( options: sicilian_postprocess_options )
+
+/*
+========================================================================================
+    IMPORT NF-CORE MODULES/SUBWORKFLOWS
+========================================================================================
+*/
+
+//
+// MODULE: Installed directly from nf-core/modules
+//
+include { MULTIQC          } from './modules/nf-core/software/multiqc/main.nf'                     addParams( options: multiqc_options                                   )
+include { UMITOOLS_EXTRACT } from './modules/nf-core/software/umitools/extract/main.nf' addParams( options: umitools_extract_options )
+include { STAR_ALIGN       } from './modules/nf-core/software/star/align/main.nf' addParams( options: star_align_options )
+
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -109,22 +146,24 @@ workflow SICILIAN {
     INPUT_CHECK (
         ch_input_csv
     )
-    INPUT_CHECK.out.reads.map {
-        meta, fastq ->
-            meta.id = meta.id.split('_')[0..-2].join('_')
-            [ meta, fastq ] }
-    .groupTuple(by: [0])
-    .branch {
-        meta, fastq ->
-            single  : fastq.size() == 1
-                return [ meta, fastq.flatten() ]
-            multiple: fastq.size() > 1
-                return [ meta, fastq.flatten() ]
-    }
-    .set { ch_fastq }
+    // INPUT_CHECK.out.reads.map {
+    //     meta, fastq ->
+    //         meta.id = meta.id.split('_')[0..-2].join('_')
+    //         [ meta, fastq ] }
+    // .groupTuple(by: [0])
+    // .branch {
+    //     meta, fastq ->
+    //         single  : fastq.size() == 1
+    //             return [ meta, fastq.flatten() ]
+    //         multiple: fastq.size() > 1
+    //             return [ meta, fastq.flatten() ]
+    // }
+    // .set { ch_reads }
+    ch_reads        = INPUT_CHECK.out.reads
     run_align       = INPUT_CHECK.out.run_align
     run_class_input = INPUT_CHECK.out.run_class_input
     run_glm         = INPUT_CHECK.out.run_glm
+    ch_reads.view()
 
 
     //
