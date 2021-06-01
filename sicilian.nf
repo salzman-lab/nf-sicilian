@@ -54,6 +54,10 @@ def modules = params.modules.clone()
 def umitools_whitelist_options = modules['umitools_whitelist']
 umitools_whitelist_options.args  += params.umitools_bc_pattern     ? " --bc-pattern='${params.umitools_bc_pattern}'"       : ''
 
+def umitools_extract_options    = modules['umitools_extract']
+umitools_extract_options.args  += params.umitools_bc_pattern     ? Utils.joinModuleArgs(["--bc-pattern='${params.umitools_bc_pattern}'"])       : ''
+if (params.save_umi_intermeds)  { umitools_extract_options.publish_files.put('fastq.gz','') }
+
 def star_genomegenerate_options = modules['star_genomegenerate']
 if (!params.save_reference)     { star_genomegenerate_options['publish_files'] = false }
 
@@ -78,7 +82,6 @@ def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index
 
 def multiqc_options         = modules['multiqc']
 multiqc_options.args       += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-if (params.skip_alignment)  { multiqc_options['publish_dir'] = '' }
 
 /*
 ========================================================================================
@@ -163,7 +166,7 @@ workflow SICILIAN {
     run_align       = INPUT_CHECK.out.run_align
     run_class_input = INPUT_CHECK.out.run_class_input
     run_glm         = INPUT_CHECK.out.run_glm
-    ch_reads.view()
+    ch_reads.dump( tag: 'ch_reads' )
 
 
     //
