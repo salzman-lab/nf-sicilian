@@ -21,7 +21,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process SICILIAN_CLASSINPUT {
-    tag "$sample_id"
+    tag "${meta.id}"
     label 'process_high'
     label 'process_super_highmem'
     label 'process_long'
@@ -48,7 +48,7 @@ process SICILIAN_CLASSINPUT {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(sample_id), path(bam)
+    tuple val(meta), path(bam)
     path gtf
     path annotator
 
@@ -56,7 +56,7 @@ process SICILIAN_CLASSINPUT {
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     // path "*.bam", emit: bam
     // TODO nf-core: List additional required output channels/values here
-    tuple val(sample_id), path("*class_input.tsv")      , emit: class_input
+    tuple val(meta), path("*class_input.tsv")      , emit: class_input
     path "*.version.txt"          , emit: version
 
     script:
@@ -71,6 +71,7 @@ process SICILIAN_CLASSINPUT {
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     def outpath = './'
+    def prefix     = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     light_class_input.py \\
         --outpath ${outpath} \\
@@ -80,7 +81,7 @@ process SICILIAN_CLASSINPUT {
         --stranded_library \\
         ${options.args}
     ls -lha 
-    mv class_input.tsv ${sample_id}__class_input.tsv
+    mv class_input.tsv ${prefix}__class_input.tsv
     python -c 'import pandas; print(pandas.__version__)' > ${software}__pandas.version.txt
     python -c 'import pysam; print(pysam.__version__)' > ${software}__pysam.version.txt
     python -c 'import numpy; print(numpy.__version__)' > ${software}__numpy.version.txt

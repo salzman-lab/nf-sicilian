@@ -240,16 +240,21 @@ workflow SICILIAN {
 
     ch_class_input
         .dump( tag: 'class_input' )
-        .multiMap {
-            sample_ids: it[0]
-            class_inputs: it[1]
+        .multiMap { 
+            meta, class_input ->
+                concatenation_ids: meta.concatenation_id
+                class_inputs: class_input
         }
         .set { class_input_multimap }
-    ch_process_ci_sample_ids = class_input_multimap.sample_ids.collect().dump( tag: 'class_input_sample_ids_collected')
-    ch_process_ci_class_inputs = class_input_multimap.class_inputs.collect().dump( tag: 'class_input_files_collected')
+    ch_process_ci_concatenation_ids = class_input_multimap.concatenation_ids
+        .collect()
+        .dump( tag: 'class_input_concatenation_ids_collected' )
+    ch_process_ci_class_inputs = class_input_multimap.class_inputs
+        .collect()
+        .dump( tag: 'class_input_files_collected' )
 
     SICILIAN_PROCESS_CI_10X (
-        ch_process_ci_sample_ids,
+        ch_process_ci_concatenation_ids,
         ch_process_ci_class_inputs,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.sicilian_exon_bounds,

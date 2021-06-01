@@ -21,7 +21,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process SICILIAN_GLM {
-    tag "$sample_id"
+    tag "${meta.id}"
     label 'process_medium'
     label 'cpu_2'
     publishDir "${params.outdir}",
@@ -50,12 +50,12 @@ process SICILIAN_GLM {
     path domain
     path exon_bounds
     path splices
-    tuple val(sample_id), path(class_input), path(sj_out_tab), path(chimeric_out_junction), path(reads_per_gene)
+    tuple val(meta), path(class_input), path(sj_out_tab), path(chimeric_out_junction), path(reads_per_gene)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(sample_id), path("*GLM_output.txt"), emit: glm_output
-    tuple val(sample_id), path("*sicilian_called_splice_juncs.tsv"), emit: sicilian_called_splices
+    tuple val(meta), path("*GLM_output.txt"), emit: glm_output
+    tuple val(meta), path("*sicilian_called_splice_juncs.tsv"), emit: sicilian_called_splices
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -74,6 +74,7 @@ process SICILIAN_GLM {
     def single = (params.single_end || params.tenx) ? '1' : '0'
     def tenx = params.tenx ? '1' : '0'
     def stranded = params.stranded ? '1' : '0'
+    def prefix     = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     ls -lha
     GLM_script_light.R \\
@@ -88,8 +89,8 @@ process SICILIAN_GLM {
 
     ls -lha
     # Rename file to be unique to each sample to prevent clashing
-    mv GLM_output.txt ${sample_id}__GLM_output.txt
-    mv sicilian_called_splice_juncs.tsv  ${sample_id}__sicilian_called_splice_juncs.tsv 
+    mv GLM_output.txt ${prefix}__GLM_output.txt
+    mv sicilian_called_splice_juncs.tsv  ${prefix}__sicilian_called_splice_juncs.tsv 
 
     # Output R package versions
     Rscript -e 'cat(paste(packageVersion("cutpointr")))' > ${software}__r-cutpointr.version.txt

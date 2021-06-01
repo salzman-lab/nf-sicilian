@@ -21,7 +21,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process SICILIAN_ANNSPLICES {
-    tag '$sample_id'
+    tag "${meta.id}"
     label 'process_small'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -45,13 +45,13 @@ process SICILIAN_ANNSPLICES {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(sample_id), path(sicilian_called_splices)
+    tuple val(meta), path(sicilian_called_splices)
     path exon_bounds
     path splices
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(sample_id), path("*sicilian_called_splice_juncs__annotated.tsv"), emit: sicilian_called_splices
+    tuple val(meta), path("*sicilian_called_splice_juncs__annotated.tsv"), emit: sicilian_called_splices
     // TODO nf-core: List additional required output channels/values here
     path "*.version.txt"          , emit: version
 
@@ -66,11 +66,12 @@ process SICILIAN_ANNSPLICES {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    def prefix     = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     ls -lha
     ann_splices.py \\
         -i ${sicilian_called_splices} \\
-        -o ${sample_id}__sicilian_called_splice_juncs__annotated.tsv \\
+        -o ${prefix}__sicilian_called_splice_juncs__annotated.tsv \\
         -e ${exon_bounds} \\
         -s ${splices}
     python -c 'import pandas; print(pandas.__version__)' > ${software}__pandas.version.txt
