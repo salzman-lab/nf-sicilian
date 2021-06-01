@@ -16,12 +16,6 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-if (params.input_csv) { 
-    ch_input_csv = file(params.input_csv) 
-} else if ( !(params.input || params.input_paths) ) { 
-    exit 1, 'No input data specified with --input or --input_csv. Exiting!' 
-}
-
 
 /*
 ========================================================================================
@@ -140,28 +134,10 @@ workflow SICILIAN {
     ch_software_versions = Channel.empty()
     // ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
-    // TODO: Add INPUT_CHECK subworkflow to allow for samplesheet input
-    // Example usage: https://github.com/nf-core/rnaseq/blob/0fcbb0ac491ecb8a80ef879c4f3dad5f869021f9/workflows/rnaseq.nf#L250
-    // Subwokflow: https://github.com/nf-core/rnaseq/blob/master/subworkflows/local/input_check.nf
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        ch_input_csv
-    )
-    // INPUT_CHECK.out.reads.map {
-    //     meta, fastq ->
-    //         meta.id = meta.id.split('_')[0..-2].join('_')
-    //         [ meta, fastq ] }
-    // .groupTuple(by: [0])
-    // .branch {
-    //     meta, fastq ->
-    //         single  : fastq.size() == 1
-    //             return [ meta, fastq.flatten() ]
-    //         multiple: fastq.size() > 1
-    //             return [ meta, fastq.flatten() ]
-    // }
-    // .set { ch_reads }
+    INPUT_CHECK ()
     ch_reads        = INPUT_CHECK.out.reads
     run_align       = INPUT_CHECK.out.run_align
     run_class_input = INPUT_CHECK.out.run_class_input
