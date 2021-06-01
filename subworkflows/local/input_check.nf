@@ -19,17 +19,22 @@ workflow INPUT_CHECK {
     run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
 
     /*
-    * Create a channel for input read files
+    * Initialize channels as empty
     */
-    ch_reads = Channel.empty()
+    ch_reads          = Channel.empty()
     // STAR output
     ch_bam            = Channel.empty()
     ch_sj_out_tab     = Channel.empty()
     ch_reads_per_gene = Channel.empty()
     chimeric_junction = Channel.empty()
     // SICILIAN output
-    ch_class_input = Channel.empty()
-    ch_glm_output  = Channel.empty()
+    ch_class_input    = Channel.empty()
+    ch_glm_output     = Channel.empty()
+
+    /*
+    * Create a channel for input read files
+    */
+    single_end = params.single_end.toBoolean()
     if (run_align) {
         // No star
         if (params.input_paths) {
@@ -37,14 +42,22 @@ workflow INPUT_CHECK {
                 ch_reads = Channel.from(params.input_paths)
                     .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
                     .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+                    .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
             } else {
                 ch_reads = Channel.from(params.input_paths)
                     .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
                     .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+                    .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
             }
-        } else {
+        } else if (params.input) {
             ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
                 .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
+                .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
+        } else if (params.input_csv) {
+            SAMPLESHEET_CHECK ( samplesheet )
+                .splitCsv ( header:true, sep:',' )
+                .map { create_fastq_channels(it) }
+                .set { ch_reads }
         }
     } else {
         if (params.star_bam_paths) {
@@ -79,13 +92,10 @@ workflow INPUT_CHECK {
         }
     }
 
-    SAMPLESHEET_CHECK ( samplesheet )
-        .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channels(it) }
-        .set { reads }
+
 
     emit:
-    reads // channel: [ val(meta), [ reads ] ]
+    reads                =  ch_reads        // channel: [ val(meta), [ reads ] ]
     // STAR output
     bam                  = ch_bam
     sj_out_tab           = ch_sj_out_tab
@@ -107,6 +117,8 @@ def create_fastq_channels(LinkedHashMap row) {
     meta.single_end       = row.single_end.toBoolean()
     meta.strandedness     = row.strandedness
     meta.concatenation_id = row.concatenation_id
+    println "row:"
+    println row
 
     def array = []
     if (!file(row.fastq_1).exists()) {
@@ -120,5 +132,30 @@ def create_fastq_channels(LinkedHashMap row) {
         }
         array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
     }
+    return array
+}
+
+
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_fastq_channels_from_filepairs(Tuple row, Boolean single_end, Boolean stranded) {
+    def meta = [:]
+    meta.id               = row[0]
+    meta.single_end       = single_end
+    meta.strandedness     = strandedness
+    meta.concatenation_id = meta.id
+
+    // 1-indexed item is the reads
+    def array = [ meta, row[1] ]
+    // if (!file(row.fastq_1).exists()) {
+    //     exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
+    // }
+    // if (meta.single_end) {
+    //     array = [ meta, [ file(row.fastq_1) ] ]
+    // } else {
+    //     if (!file(row.fastq_2).exists()) {
+    //         exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
+    //     }
+    //     array = [ meta, row[1] ]
+    // }
     return array
 }

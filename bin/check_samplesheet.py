@@ -40,10 +40,10 @@ def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
 
-    sample_id,fastq_1,fastq_2,strandedness,concatenation_id
-    SAMPLE_PE_RUN1,SAMPLE_PE_RUN1_1.fastq.gz,SAMPLE_PE_RUN1_2.fastq.gz,forward,SAMPLE_PE
-    SAMPLE_PE_RUN1,SAMPLE_PE_RUN2_1.fastq.gz,SAMPLE_PE_RUN2_2.fastq.gz,forward,SAMPLE_PE
-    SAMPLE_SE,SAMPLE_SE_RUN1_1.fastq.gz,,forward,SAMPLE_SE
+    sample_id,fastq_1,fastq_2,single_end,strandedness,concatenation_id
+    SAMPLE_PE_RUN1,SAMPLE_PE_RUN1_1.fastq.gz,SAMPLE_PE_RUN1_2.fastq.gz,false,forward,SAMPLE_PE
+    SAMPLE_PE_RUN1,SAMPLE_PE_RUN2_1.fastq.gz,SAMPLE_PE_RUN2_2.fastq.gz,false,forward,SAMPLE_PE
+    SAMPLE_SE,SAMPLE_SE_RUN1_1.fastq.gz,,false,forward,SAMPLE_SE
 
     For an example see:
     TODO: Create new example
@@ -55,7 +55,13 @@ def check_samplesheet(file_in, file_out):
 
         ## Check header
         MIN_COLS = 3
-        HEADER = ["sample_id", "fastq_1", "fastq_2", "strandedness", "concatenation_id"]
+        HEADER = [
+            "sample_id",
+            "fastq_1",
+            "fastq_2",
+            "strandedness",
+            "concatenation_id",
+        ]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(
@@ -84,7 +90,9 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample_id, fastq_1, fastq_2, strandedness = lspl[: len(HEADER)]
+            sample_id, fastq_1, fastq_2, strandedness, concatenation_id = lspl[
+                : len(HEADER)
+            ]
             if sample_id:
                 if sample_id.find(" ") != -1:
                     print_error("Sample entry contains spaces!", "Line", line)
@@ -121,21 +129,21 @@ def check_samplesheet(file_in, file_out):
 
             ## Auto-detect paired-end/single-end
             sample_info = []  ## [single_end, fastq_1, fastq_2, strandedness]
-            if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, strandedness]
-            elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, strandedness]
+            if sample_id and fastq_1 and fastq_2:  ## Paired-end short reads
+                sample_info = ["0", fastq_1, fastq_2, strandedness, concatenation_id]
+            elif sample_id and fastq_1 and not fastq_2:  ## Single-end short reads
+                sample_info = ["1", fastq_1, fastq_2, strandedness, concatenation_id]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
             ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, strandedness ]]}
-            if sample not in sample_mapping_dict:
-                sample_mapping_dict[sample] = [sample_info]
+            if sample_id not in sample_mapping_dict:
+                sample_mapping_dict[sample_id] = [sample_info]
             else:
-                if sample_info in sample_mapping_dict[sample]:
+                if sample_info in sample_mapping_dict[sample_id]:
                     print_error("Samplesheet contains duplicate rows!", "Line", line)
                 else:
-                    sample_mapping_dict[sample].append(sample_info)
+                    sample_mapping_dict[sample_id].append(sample_info)
 
     ## Write validated samplesheet with appropriate columns
     if len(sample_mapping_dict) > 0:

@@ -73,7 +73,7 @@ def make_samplesheet_from_s3_path(s3_path, suffix="fastq.gz", strandedness="forw
     )
     samplesheet = samplesheet.reset_index()
     # samplesheet = samplesheet.rename(columns={"lane": "concatenation_id"})
-    samplesheet["single_end"] = samplesheet["fastq_2"].isnull()
+    # samplesheet["single_end"] = samplesheet["fastq_2"].isnull()
 
     # Remove the column name so it doesn't get written
     samplesheet.columns.name = None
@@ -87,7 +87,6 @@ def make_samplesheet_from_s3_path(s3_path, suffix="fastq.gz", strandedness="forw
             "sample_id",
             "fastq_1",
             "fastq_2",
-            "single_end",
             "strandedness",
             "concatenation_id",
         ]
