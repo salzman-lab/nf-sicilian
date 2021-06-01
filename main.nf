@@ -75,7 +75,7 @@ params.summary_params = [:]
 
 // Check input path parameters to see if they exist
 checkPathParamList = [
-    // params.input, 
+    params.input, 
     // params.multiqc_config,
     params.gtf, 
 ]
@@ -265,7 +265,7 @@ workflow {
         ch_chimeric_junction,
         PREPARE_GENOME.out.gtf,
         ch_domain,
-        PREPARE_GENOME.out.annotator,
+        PREPARE_GENOME.out.sicilian_annotator,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
         run_class_input,
