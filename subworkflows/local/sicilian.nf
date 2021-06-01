@@ -13,14 +13,14 @@ params.process_ci_10x_options = [:]
 params.postprocess_options = [:]
 
 // Per-sample SICILIAN functions
-include { SICILIAN_CLASSINPUT } from './modules/local/sicilian/classinput.nf'        addParams( options: params.classinput_options )
-include { SICILIAN_GLM        } from './modules/local/sicilian/glm.nf'               addParams( options: params.glm_option )
-include { SICILIAN_ANNSPLICES } from './modules/local/sicilian/annsplices.nf'        addParams( options: params.annsplices_options )
+include { SICILIAN_CLASSINPUT } from '../../modules/local/sicilian/classinput.nf'        addParams( options: params.classinput_options )
+include { SICILIAN_GLM        } from '../../modules/local/sicilian/glm.nf'               addParams( options: params.glm_options )
+include { SICILIAN_ANNSPLICES } from '../../modules/local/sicilian/annsplices.nf'        addParams( options: params.annsplices_options )
 
 // Postprocessing of SICILIAN output, to consolidate output from mutliple samples into one summary file
-include { SICILIAN_CONSOLIDATE    } from './modules/local/sicilian/consolidate.nf'  addParams( options: params.consolidate_options )
-include { SICILIAN_PROCESS_CI_10X } from './modules/local/sicilian/processci10x.nf' addParams( options: params.process_ci_10x_options )
-include { SICILIAN_POSTPROCESS    } from './modules/local/sicilian/postprocess.nf'  addParams( options: params.postprocess_options )
+include { SICILIAN_CONSOLIDATE    } from '../../modules/local/sicilian/consolidate.nf'  addParams( options: params.consolidate_options )
+include { SICILIAN_PROCESS_CI_10X } from '../../modules/local/sicilian/processci10x.nf' addParams( options: params.process_ci_10x_options )
+include { SICILIAN_POSTPROCESS    } from '../../modules/local/sicilian/postprocess.nf'  addParams( options: params.postprocess_options )
 
 
 workflow SICILIAN {
@@ -47,7 +47,7 @@ workflow SICILIAN {
         SICILIAN_CLASSINPUT (
             bam,
             gtf,
-            sicilian_annotator,
+            annotator,
         )
         ch_software_versions = ch_software_versions.mix(SICILIAN_CLASSINPUT.out.version.ifEmpty(null))
         ch_class_input = SICILIAN_CLASSINPUT.out.class_input
