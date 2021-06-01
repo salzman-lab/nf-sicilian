@@ -21,11 +21,11 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process UMITOOLS_WHITELIST {
-    tag "$sample_id"
+    tag "${meta.id}"
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     // TODO nf-core: List required Conda package(s).
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
@@ -45,19 +45,19 @@ process UMITOOLS_WHITELIST {
     //               https://github.com/nf-core/modules/blob/master/software/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(sample_id), path(reads)
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sample_id), path("*.whitelist.txt")          , emit: whitelist
-    tuple val(sample_id), path("*.log")                    , emit: log
-    tuple val(sample_id), path("*barcode_counts.png")      , emit: barcode_counts_png
-    tuple val(sample_id), path("*barcode_knee.png")        , emit: barcode_knee_png
-    tuple val(sample_id), path("*cell_thresholds.tsv")     , emit: cell_thresholds
-    path  "*.version.txt"                                  , emit: version
+    tuple val(meta), path("*.whitelist.txt")          , emit: whitelist
+    tuple val(meta), path("*.log")                    , emit: log
+    tuple val(meta), path("*barcode_counts.png")      , emit: barcode_counts_png
+    tuple val(meta), path("*barcode_knee.png")        , emit: barcode_knee_png
+    tuple val(meta), path("*cell_thresholds.tsv")     , emit: cell_thresholds
+    path  "*.version.txt"                             , emit: version
 
     script:
     def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${sample_id}${options.suffix}" : "${sample_id}"
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     // TODO nf-core: Where possible, a command MUST be provided to obtain the version number of the software e.g. 1.10
     //               If the software is unable to output a version number on the command-line then it can be manually specified
     //               e.g. https://github.com/nf-core/modules/blob/master/software/homer/annotatepeaks/main.nf

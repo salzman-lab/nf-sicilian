@@ -5,11 +5,11 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process UMITOOLS_EXTRACT {
-    tag "$sample_id"
+    tag "${meta.id}"
     label "process_low"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::umi_tools=1.1.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -19,17 +19,17 @@ process UMITOOLS_EXTRACT {
     }
 
     input:
-    tuple val(sample_id), path(reads)
-    tuple val(sample_id), path(whitelist)
+    tuple val(meta), path(reads)
+    tuple val(meta), path(whitelist)
 
     output:
-    tuple val(sample_id), path("*.fastq.gz"), emit: reads
-    tuple val(sample_id), path("*.log")     , emit: log
+    tuple val(meta), path("*.fastq.gz"), emit: reads
+    tuple val(meta), path("*.log")     , emit: log
     path  "*.version.txt"              , emit: version
 
     script:
     def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${sample_id}${options.suffix}" : "${sample_id}"
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     // This is only run on paired-end 10x data which 
     """
     umi_tools \\
