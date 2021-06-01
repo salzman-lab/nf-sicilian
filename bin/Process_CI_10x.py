@@ -249,12 +249,12 @@ def main():
             meta_df,
             exon_bounds,
             splices,
-            sample_name,
+            concat_name,
             args.include_meta,
         )
         print(concat_group_df.columns)
-        concat_group_df["channel"] = sample_name
-        print(f"processed lane: {sample_name}")
+        concat_group_df["channel"] = concat_name
+        print(f"processed lane: {concat_name}")
         print("concat_group_df.shape", concat_group_df.shape)
         all_dfs.append(concat_group_df)
 
