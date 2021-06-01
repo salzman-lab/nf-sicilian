@@ -16,63 +16,10 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-star_output_params = params.star_sj_out_tab && params.reads_per_gene && params.star_chimeric_junction && params.star_bam
-star_output_params_paths = params.star_bam_paths && params.star_sj_out_tab_paths && params.star_reads_per_gene_paths && params.star_chimeric_junction_paths
-
-run_align = ! (star_output_params || star_output_params_paths)
-run_glm = !( params.sicilian_glm_output_paths || params.sicilian_glm_output )
-run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
-
-/*
- * Create a channel for input read files
- */
-if (run_align) {
-    // No star
-    if (params.input_paths) {
-        if (params.single_end) {
-            ch_reads = Channel.from(params.input_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
-        } else {
-            ch_reads = Channel.from(params.input_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
-        }
-    } else {
-        ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
-            .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
-    }
-} else {
-    if (params.star_bam_paths) {
-        ch_bam = Channel.from(params.star_bam_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.star_bam_paths was empty - no input files supplied' }
-    }   
-    if (params.star_sj_out_tab_paths) {
-        ch_sj_out_tab = Channel.from(params.star_sj_out_tab_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.star_sj_out_tab_paths was empty - no input files supplied' }
-    }
-    if (params.star_reads_per_gene_paths) {
-        ch_reads_per_gene = Channel.from(params.star_reads_per_gene_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.star_reads_per_gene_paths was empty - no input files supplied' }
-    }
-    if (params.star_chimeric_junction_paths) {
-        ch_chimeric_junction = Channel.from(params.star_chimeric_junction_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.star_chimeric_junction_paths was empty - no input files supplied' }
-    }
-    if (params.sicilian_class_input_paths) {
-        ch_class_input = Channel.from(params.sicilian_class_input_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.ch_class_input was empty - no input files supplied' }
-    }
-    if (params.sicilian_glm_output_paths) {
-        ch_glm_output = Channel.from(params.sicilian_glm_output_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, 'params.sicilian_glm_output_paths was empty - no input files supplied' }
-    }
+if (params.input_csv) { 
+    ch_input_csv = file(params.input_csv) 
+} else if ( !(params.input || params.input_paths) ) { 
+    exit 1, 'No input data specified with --input or --input_csv. Exiting!' 
 }
 
 
@@ -113,6 +60,7 @@ def publish_genome_options = params.save_reference ? [publish_dir: 'genome']    
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
 // Import modules
+include { INPUT_CHECK              } from './subworkflows/local/input_check'    addParams( options: [:] )
 include { UMITOOLS_WHITELIST       } from './modules/local/umitools_whitelist'          addParams( options: umitools_whitelist_options )
 include { UMITOOLS_EXTRACT         } from './modules/nf-core/software/umitools/extract/main.nf'   addParams( options: umitools_extract_options )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/get_software_versions'       addParams( options: [publish_files : ['csv':'']]                      )
@@ -155,6 +103,29 @@ workflow SICILIAN {
     // TODO: Add INPUT_CHECK subworkflow to allow for samplesheet input
     // Example usage: https://github.com/nf-core/rnaseq/blob/0fcbb0ac491ecb8a80ef879c4f3dad5f869021f9/workflows/rnaseq.nf#L250
     // Subwokflow: https://github.com/nf-core/rnaseq/blob/master/subworkflows/local/input_check.nf
+    //
+    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
+    //
+    INPUT_CHECK (
+        ch_input_csv
+    )
+    INPUT_CHECK.out.reads.map {
+        meta, fastq ->
+            meta.id = meta.id.split('_')[0..-2].join('_')
+            [ meta, fastq ] }
+    .groupTuple(by: [0])
+    .branch {
+        meta, fastq ->
+            single  : fastq.size() == 1
+                return [ meta, fastq.flatten() ]
+            multiple: fastq.size() > 1
+                return [ meta, fastq.flatten() ]
+    }
+    .set { ch_fastq }
+    run_align       = INPUT_CHECK.out.run_align
+    run_class_input = INPUT_CHECK.out.run_class_input
+    run_glm         = INPUT_CHECK.out.run_glm
+
 
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
@@ -163,7 +134,7 @@ workflow SICILIAN {
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.star_version.ifEmpty(null))
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
-
+    ch_star_multiqc  = Channel.empty()
     if (run_align) {
         if (!params.skip_umitools) {
         /*
@@ -187,10 +158,17 @@ workflow SICILIAN {
             PREPARE_GENOME.out.gtf,
         )
         ch_software_versions = ch_software_versions.mix(STAR_ALIGN.out.version.first().ifEmpty(null))
-        ch_bam = STAR_ALIGN.out.bam
-        ch_sj_out_tab = STAR_ALIGN.out.sj_out_tab
+        ch_bam               = STAR_ALIGN.out.bam
+        ch_sj_out_tab        = STAR_ALIGN.out.sj_out_tab
         ch_chimeric_junction = STAR_ALIGN.out.chimeric_out_junction
-        ch_reads_per_gene = STAR_ALIGN.out.reads_per_gene
+        ch_reads_per_gene    = STAR_ALIGN.out.reads_per_gene
+        ch_star_multiqc      = STAR_ALIGN.out.log_final
+    } else {
+        // Skipping alignment, because already have all the files from the input
+        ch_bam = INPUT_CHECK.out.bam
+        ch_sj_out_tab = INPUT_CHECK.out.sj_out_tab
+        ch_chimeric_junction = INPUT_CHECK.out.chimeric_out_junction
+        ch_reads_per_gene = INPUT_CHECK.out.reads_per_gene
     }
 
 
@@ -203,6 +181,8 @@ workflow SICILIAN {
         )
         ch_software_versions = ch_software_versions.mix(SICILIAN_CLASSINPUT.out.version.ifEmpty(null))
         ch_class_input = SICILIAN_CLASSINPUT.out.class_input
+    } else {
+        ch_class_input = INPUT_CHECK.out.class_input
     }
 
     if (run_glm) {
@@ -230,6 +210,8 @@ workflow SICILIAN {
             PREPARE_GENOME.out.sicilian_splices,
         )
         ch_software_versions = ch_software_versions.mix(SICILIAN_GLM.out.version.ifEmpty(null))
+    } else {
+        ch_glm_output = INPUT_CHECK.out.glm_output
     }
 
     SICILIAN_CONSOLIDATE(
@@ -281,111 +263,23 @@ workflow SICILIAN {
     GET_SOFTWARE_VERSIONS (
         ch_software_versions
     )
-/// STAR needs  --sjdbGTFfile {} .format(gtf_file) option
-
-
-    // /*
-    //  * SUBWORKFLOW: Alignment with STAR and gene/transcript quantification with Salmon
-    //  */
-    // ch_genome_bam                 = Channel.empty()
-    // ch_genome_bai                 = Channel.empty()
-    // ch_samtools_stats             = Channel.empty()
-    // ch_samtools_flagstat          = Channel.empty()
-    // ch_samtools_idxstats          = Channel.empty()
-    // ch_star_multiqc               = Channel.empty()
-    // ch_aligner_pca_multiqc        = Channel.empty()
-    // ch_aligner_clustering_multiqc = Channel.empty()
-    // ALIGN_STAR (
-    //     ch_trimmed_reads,
-    //     PREPARE_GENOME.out.star_index,
-    //     PREPARE_GENOME.out.gtf
-    // )
-    // ch_genome_bam        = ALIGN_STAR.out.bam
-    // ch_genome_bai        = ALIGN_STAR.out.bai
-    // ch_samtools_stats    = ALIGN_STAR.out.stats
-    // ch_samtools_flagstat = ALIGN_STAR.out.flagstat
-    // ch_samtools_idxstats = ALIGN_STAR.out.idxstats
-    // ch_star_multiqc      = ALIGN_STAR.out.log_final
-    // ch_software_versions = ch_software_versions.mix(ALIGN_STAR.out.star_version.first().ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(ALIGN_STAR.out.samtools_version.first().ifEmpty(null))
-
-    // /*
-    //     * SUBWORKFLOW: Count reads from BAM alignments using Salmon
-    //     */
-    // QUANTIFY_STAR_SALMON (
-    //     ALIGN_STAR.out.bam_transcript,
-    //     ch_dummy_file,
-    //     PREPARE_GENOME.out.transcript_fasta,
-    //     PREPARE_GENOME.out.gtf,
-    //     true
-    // )
-    // ch_software_versions = ch_software_versions.mix(QUANTIFY_STAR_SALMON.out.salmon_version.first().ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(QUANTIFY_STAR_SALMON.out.tximeta_version.first().ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(QUANTIFY_STAR_SALMON.out.summarizedexperiment_version.ifEmpty(null))
-
-    // if (!params.skip_qc & !params.skip_deseq2_qc) {
-    //     DESEQ2_QC_STAR_SALMON (
-    //         QUANTIFY_STAR_SALMON.out.merged_counts_gene_length_scaled,
-    //         ch_pca_header_multiqc,
-    //         ch_clustering_header_multiqc
-    //     )
-    //     ch_aligner_pca_multiqc        = DESEQ2_QC_STAR_SALMON.out.pca_multiqc
-    //     ch_aligner_clustering_multiqc = DESEQ2_QC_STAR_SALMON.out.dists_multiqc
-    //     ch_software_versions          = ch_software_versions.mix(DESEQ2_QC_STAR_SALMON.out.version.ifEmpty(null))
-    // }
-
-
-    /*
-     * MODULE: Pipeline reporting
-     */
-    // GET_SOFTWARE_VERSIONS ( 
-    //     ch_software_versions.map { it }.collect()
-    // )
 
     /*
      * MultiQC
      */
-    // if (!params.skip_multiqc) {
-    //     workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
-    //     ch_workflow_summary = Channel.value(workflow_summary)
+    if (!params.skip_multiqc) {
+        workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    //     MULTIQC (
-    //         ch_multiqc_config,
-    //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    //         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-    //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-    //         // ch_fail_mapping_multiqc.ifEmpty([]),
-    //         // ch_fail_strand_multiqc.ifEmpty([]),
-    //         // FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    //         // FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-    //         // FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-    //         // ch_sortmerna_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_star_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_hisat2_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_rsem_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_salmon_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-    //         // ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-    //         // ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-    //         // ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_featurecounts_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_aligner_pca_multiqc.collect().ifEmpty([]),
-    //         // ch_aligner_clustering_multiqc.collect().ifEmpty([]),
-    //         // ch_pseudoaligner_pca_multiqc.collect().ifEmpty([]),
-    //         // ch_pseudoaligner_clustering_multiqc.collect().ifEmpty([]),
-    //         // ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_qualimap_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_dupradar_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_bamstat_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_inferexperiment_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_innerdistance_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_junctionannotation_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_junctionsaturation_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
-    //         // ch_readduplication_multiqc.collect{it[1]}.ifEmpty([])
-    //     )
-    //     multiqc_report = MULTIQC.out.report.toList()
-    // }
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            ch_star_multiqc.collect{it[1]}.ifEmpty([]),
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 ////////////////////////////////////////////////////
