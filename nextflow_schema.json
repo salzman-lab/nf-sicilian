@@ -416,6 +416,14 @@
         },
         "seq_center": {
             "type": "string"
+        },
+        "input_csv": {
+            "type": "string",
+            "default": "null"
+        },
+        "multiqc_title": {
+            "type": "string",
+            "default": "null"
         }
     }
 }
