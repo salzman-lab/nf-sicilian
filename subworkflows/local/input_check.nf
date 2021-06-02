@@ -98,13 +98,27 @@ workflow INPUT_CHECK {
             ch_class_input = Channel.from(params.sicilian_class_input_paths)
                 .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
                 .ifEmpty { exit 1, 'params.ch_class_input was empty - no input files supplied' }
+                .dump ( tag: 'ch_class_input' )
         }
         if (params.sicilian_glm_output_paths) {
             ch_glm_output = Channel.from(params.sicilian_glm_output_paths)
                 .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
                 .ifEmpty { exit 1, 'params.sicilian_glm_output_paths was empty - no input files supplied' }
+                .dump ( tag: 'ch_glm_output' )
         }
     }
+
+    ch_reads.dump( tag: 'ch_reads' )
+    ch_bam.dump ( tag: 'ch_bam' )
+    ch_sj_out_tab.dump ( tag: 'ch_sj_out_tab' )
+    ch_reads_per_gene.dump ( tag: 'ch_reads_per_gene' )
+    ch_chimeric_junction.dump ( tag: 'ch_chimeric_junction' )
+    ch_class_input.dump ( tag: 'ch_class_input' )
+    ch_glm_output.dump ( tag: 'ch_glm_output' )
+
+    run_align.dump( tag: 'run_align' )
+    run_class_input.dump( tag: 'run_class_input' )
+    run_glm.dump( tag: 'run_glm' )
 
 
 
