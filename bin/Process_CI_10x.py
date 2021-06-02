@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 import argparse
-from collections import defaultdict
-from itertools import groupby
-import pandas as pd
+import os
 import pickle
-import numpy as np
-from glob import glob
 import time
+from collections import defaultdict
+from glob import glob
+from itertools import groupby
+
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
-from datetime import timedelta
 
 
 def ensembl_name_map(gtf_file):
@@ -205,7 +206,9 @@ def main():
 
     for concat_name, group in tqdm(groupby(names_filenames, key=lambda x: x[0])):
         concat_group_dfs = []
+        csv_names = []
         for name, filename in group:
+            csv_names.append(os.path.basename(filename))
             df = pd.read_csv(
                 filename,
                 dtype={
@@ -255,7 +258,9 @@ def main():
         )
         print(concat_group_df.columns)
         concat_group_df["channel"] = concat_name
-        print(f"processed lane: {concat_name}")
+        print(f"processed sample: {concat_name}")
+        print(f"Sample: {concat_name} contained files:")
+        print("\t" + "\n\t".join(csv_names))
         print("concat_group_df.shape", concat_group_df.shape)
         all_dfs.append(concat_group_df)
 
