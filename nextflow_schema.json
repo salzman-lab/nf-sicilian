@@ -409,6 +409,15 @@
         },
         "summary_params": {
             "type": "string"
+        },
+        "skip_star": {
+            "type": "boolean"
+        },
+        "skip_classinput": {
+            "type": "boolean"
+        },
+        "skip_glm": {
+            "type": "boolean"
         }
     }
 }
