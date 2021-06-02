@@ -80,13 +80,13 @@ def check_samplesheet(file_in, file_out, skip_star, skip_classinput, skip_glm):
 
     sample_mapping_dict = {}
 
-    additional_cols = FASTQ_COLUMNS
+    additional_cols = FASTQ_COLUMNS_LIST
     if skip_star:
         additional_cols += SKIP_STAR_COLUMNS
-    elif skip_classinput:
-        additional_cols += SKIP_CLASSINPUT_COLUMNS
-    elif skip_glm:
-        additional_cols += SKIP_GLM_COLUMNS
+    if skip_classinput:
+        additional_cols += [CLASSINPUT_COL]
+    if skip_glm:
+        additional_cols += [GLM_COL]
 
     do_alignment = not (skip_star or skip_classinput or skip_glm)
 
@@ -100,9 +100,30 @@ def check_samplesheet(file_in, file_out, skip_star, skip_classinput, skip_glm):
             "concatenation_id",
         ] + additional_cols
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
-        if set(header) != set(HEADER):
+        header_set = set(header)
+        HEADER_SET = set(HEADER)
+        if len(header_set) < len(header):
+            seen = {}
+            duplicates = []
+            for x in header:
+                if x not in seen:
+                    seen[x] = 1
+                else:
+                    if seen[x] > 1:
+                        duplicates.append(x)
+                    seen[x] += 1
             print(
-                f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}"
+                "ERROR: Please check samplesheet header:"
+                f"\n-> Duplicate columns found: {','.join(duplicates)}"
+            )
+        if header_set != HEADER_SET:
+            expected_columns = sorted(list(HEADER_SET.difference(header_set)))
+            unexpected_columns = sorted(list(header_set.difference(HEADER_SET)))
+            print(
+                f"ERROR: Please check samplesheet header:"
+                f"\n-> Expected {','.join(expected_columns)} columns but did not see them"
+                f"\n-> Saw {','.join(unexpected_columns)} columns but but did not expect them"
+                f"\nParameters: skip_star={skip_star}, skip_classinput={skip_classinput}, skip_glm={skip_glm}"
             )
             sys.exit(1)
 

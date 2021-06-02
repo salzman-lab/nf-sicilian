@@ -19,11 +19,6 @@ workflow INPUT_CHECK {
         exit 1, 'No input data specified with --input or --input_csv. Exiting!' 
     }
 
-
-    run_align = !params.skip_star
-    run_class_input = !params.skip_classinput
-    run_glm = !params.skip_glm
-
     /*
     * Initialize channels as empty
     */
@@ -65,9 +60,10 @@ workflow INPUT_CHECK {
             .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
     } else if (params.input_csv) {
         samplesheet = file(params.input_csv, checkIfExists: true) 
-        ch_samplesheet = SAMPLESHEET_CHECK ( samplesheet )
-            .splitCsv ( header:true, sep:',' )
-        if (run_align) { 
+        ch_samplesheet = SAMPLESHEET_CHECK ( 
+                samplesheet, params.skip_star, params.skip_classinput, params.skip_glm 
+            ).splitCsv ( header:true, sep:',' )
+        if (!params.skip_star) { 
             ch_samplesheet
                 .map { create_fastq_channels(it) }
                 .set { ch_reads }
@@ -75,17 +71,21 @@ workflow INPUT_CHECK {
            ch_samplesheet
                 .map { create_star_output_channels(it) }
                 .set { ch_samplesheet_star_output }
-            ch_bam = ch_samplesheet_star_output.map{ it.bam }
-            ch_sj_out_tab = ch_samplesheet_star_output.map{ it.sj_out_tab }
-            ch_reads_per_gene = ch_samplesheet_star_output.map{ it.reads_per_gene }
-            ch_chimeric_junction = ch_samplesheet_star_output.map{ it.chimeric_junction }
+            ch_bam = ch_samplesheet_star_output
+                .map{ [it, file(it.bam) ] }
+            ch_sj_out_tab = ch_samplesheet_star_output
+                .map{ [it, file(it.sj_out_tab) ] }
+            ch_reads_per_gene = ch_samplesheet_star_output
+                .map{ [it, file(it.reads_per_gene) ] }
+            ch_chimeric_junction = ch_samplesheet_star_output
+                .map{ [it, file(it.chimeric_junction) ] }
         }
-        if (!run_class_input) {
+        if (params.skip_classinput) {
             ch_samplesheet
                 .map { create_class_input_channels(it) }
                 .set { ch_class_input }
         }
-        if (!run_glm) {
+        if (params.skip_glm) {
             ch_samplesheet
                 .map { create_glm_output_channels(it) }
                 .set { ch_glm_output }
@@ -100,25 +100,17 @@ workflow INPUT_CHECK {
     ch_class_input.dump ( tag: 'ch_class_input' )
     ch_glm_output.dump ( tag: 'ch_glm_output' )
 
-    println "run_align: ${run_align}"
-    println "run_class_input: ${run_class_input}"
-    println "run_glm: ${run_glm}"
-
-
     emit:
-    reads                =  ch_reads        // channel: [ val(meta), [ reads ] ]
+    reads                 =  ch_reads        // channel: [ val(meta), [ reads ] ]
     // STAR output
-    bam                  = ch_bam
-    sj_out_tab           = ch_sj_out_tab
-    reads_per_gene       = ch_reads_per_gene
-    ch_chimeric_junction = chimeric_junction 
+    bam                   = ch_bam
+    sj_out_tab            = ch_sj_out_tab
+    reads_per_gene        = ch_reads_per_gene
+    chimeric_out_junction = chimeric_junction 
     // SICILIAN output
-    class_input          = ch_class_input
-    glm_output           = ch_glm_output
-    // Booleans
-    run_align            = run_align
-    run_class_input      = run_class_input
-    run_glm              = run_glm
+    class_input           = ch_class_input
+    glm_output            = ch_glm_output
+
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
@@ -171,8 +163,8 @@ def create_class_input_channels(LinkedHashMap row) {
     if (!file(row.class_input).exists()) {
         exit 1, "ERROR: Please check input samplesheet -> Class input file does not exist!\n${row.class_input}"
     }
-    array = [ meta, row.class_input ]
-    return meta
+    array = [ meta, file(row.class_input) ]
+    return array
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
@@ -187,8 +179,8 @@ def create_glm_output_channels(LinkedHashMap row) {
     if (!file(row.glm_output).exists()) {
         exit 1, "ERROR: Please check input samplesheet -> GLM output file does not exist!\n${row.glm_output}"
     }
-    array = [ meta, row.glm_output ]
-    return meta
+    array = [ meta, file(row.glm_output) ]
+    return array
 }
 
 

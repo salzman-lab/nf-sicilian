@@ -207,13 +207,8 @@ workflow {
     //
     INPUT_CHECK ()
     ch_reads        = INPUT_CHECK.out.reads
-    run_align       = INPUT_CHECK.out.run_align
-    run_class_input = INPUT_CHECK.out.run_class_input
-    run_glm         = INPUT_CHECK.out.run_glm
-    ch_reads.dump( tag: 'ch_reads' )
-    println "INPUT_CHECK.out"
-    println INPUT_CHECK.out
 
+    ch_reads.dump( tag: 'ch_reads' )
 
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
@@ -223,7 +218,7 @@ workflow {
     ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.gffread_version.ifEmpty(null))
 
     ch_star_multiqc  = Channel.empty()
-    if (run_align) {
+    if (!params.skip_star) {
         if (!params.skip_umitools) {
         /*
         * MODULE: Create a whitelist of UMIs from the data
@@ -233,7 +228,9 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(UMITOOLS_WHITELIST.out.version.ifEmpty(null))
 
-
+        /*
+        * MODULE: Extract cell and molecular barcodes from R1 and insert into read name of R2
+        */
         UMITOOLS_EXTRACT ( ch_reads, UMITOOLS_WHITELIST.out.whitelist ).reads.set { umi_reads }
         ch_software_versions = ch_software_versions.mix(UMITOOLS_EXTRACT.out.version.ifEmpty(null))
         } else {
@@ -270,9 +267,7 @@ workflow {
         PREPARE_GENOME.out.sicilian_annotator,
         PREPARE_GENOME.out.sicilian_exon_bounds,
         PREPARE_GENOME.out.sicilian_splices,
-        run_class_input,
         INPUT_CHECK.out.class_input,
-        run_glm,
         INPUT_CHECK.out.glm_output,
     )
 

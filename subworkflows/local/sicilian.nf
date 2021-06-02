@@ -34,16 +34,14 @@ workflow SICILIAN {
     annotator           // channel: /path/to/annotator.pkl
     exon_bounds         // channel: /path/to/exon_bounds.pkl
     splices             // channel: /path/to/splices.pkl
-    run_class_input     // Boolean
     class_input         // channel: [ val(meta), class_input_file ]
-    run_glm             // Boolean
     glm_output          // channel: [ val(meta), glm_output_file ]
 
 
     main: 
     ch_software_versions = Channel.empty()
 
-    if (run_class_input) {
+    if (!params.skip_classinput) {
         SICILIAN_CLASSINPUT (
             bam,
             gtf,
@@ -55,7 +53,7 @@ workflow SICILIAN {
         ch_class_input = class_input
     }
 
-    if (run_glm) {
+    if (!params.skip_glm) {
         ch_classinput_sjouttab_chimericjunctions_readspergene = ch_class_input.join(
             sj_out_tab
         ).join( 
