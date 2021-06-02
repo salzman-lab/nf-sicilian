@@ -22,16 +22,16 @@ workflow INPUT_CHECK {
     /*
     * Initialize channels as empty
     */
-    ch_reads          = Channel.empty()
-    ch_input_csv      = Channel.empty()
+    ch_reads             = Channel.empty()
+    ch_input_csv         = Channel.empty()
     // STAR output
-    ch_bam            = Channel.empty()
-    ch_sj_out_tab     = Channel.empty()
-    ch_reads_per_gene = Channel.empty()
-    chimeric_junction = Channel.empty()
+    ch_bam               = Channel.empty()
+    ch_sj_out_tab        = Channel.empty()
+    ch_reads_per_gene    = Channel.empty()
+    ch_chimeric_junction = Channel.empty()
     // SICILIAN output
-    ch_class_input    = Channel.empty()
-    ch_glm_output     = Channel.empty()
+    ch_class_input       = Channel.empty()
+    ch_glm_output        = Channel.empty()
 
     /*
     * Create a channel for input read files
