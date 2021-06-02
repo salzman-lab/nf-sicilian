@@ -116,9 +116,9 @@ workflow INPUT_CHECK {
     ch_class_input.dump ( tag: 'ch_class_input' )
     ch_glm_output.dump ( tag: 'ch_glm_output' )
 
-    run_align.dump( tag: 'run_align' )
-    run_class_input.dump( tag: 'run_class_input' )
-    run_glm.dump( tag: 'run_glm' )
+    println "run_align: ${run_align}"
+    println "run_class_input: ${run_class_input}"
+    println "run_glm: ${run_glm}"
 
 
 
