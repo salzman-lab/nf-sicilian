@@ -85,10 +85,10 @@ def make_samplesheet_from_s3_path(s3_path, suffix="fastq.gz", strandedness="forw
     samplesheet = samplesheet[
         [
             "sample_id",
-            "fastq_1",
-            "fastq_2",
             "strandedness",
             "concatenation_id",
+            "fastq_1",
+            "fastq_2",
         ]
     ]
     return samplesheet
