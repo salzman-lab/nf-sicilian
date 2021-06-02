@@ -211,7 +211,6 @@ workflow {
     run_class_input = INPUT_CHECK.out.run_class_input
     run_glm         = INPUT_CHECK.out.run_glm
     ch_reads.dump( tag: 'ch_reads' )
-    INPUT_CHECK.out.view()
     INPUT_CHECK.out.dump( tag: 'INPUT_CHECK.out')
 
 
