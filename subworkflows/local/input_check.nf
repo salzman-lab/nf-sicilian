@@ -22,16 +22,16 @@ workflow INPUT_CHECK {
     /*
     * Initialize channels as empty
     */
-    ch_reads             = Channel.empty()
-    ch_input_csv         = Channel.empty()
+    ch_reads                 = Channel.empty()
+    ch_input_csv             = Channel.empty()
     // STAR output
-    ch_bam               = Channel.empty()
-    ch_sj_out_tab        = Channel.empty()
-    ch_reads_per_gene    = Channel.empty()
-    ch_chimeric_junction = Channel.empty()
+    ch_bam                   = Channel.empty()
+    ch_sj_out_tab            = Channel.empty()
+    ch_reads_per_gene        = Channel.empty()
+    ch_chimeric_out_junction = Channel.empty()
     // SICILIAN output
-    ch_class_input       = Channel.empty()
-    ch_glm_output        = Channel.empty()
+    ch_class_input           = Channel.empty()
+    ch_glm_output            = Channel.empty()
 
     /*
     * Create a channel for input read files
@@ -77,7 +77,7 @@ workflow INPUT_CHECK {
                 .map{ [it, file(it.sj_out_tab) ] }
             ch_reads_per_gene = ch_samplesheet_star_output
                 .map{ [it, file(it.reads_per_gene) ] }
-            ch_chimeric_junction = ch_samplesheet_star_output
+            ch_chimeric_out_junction = ch_samplesheet_star_output
                 .map{ [it, file(it.chimeric_junction) ] }
         }
         if (params.skip_classinput) {
@@ -96,7 +96,7 @@ workflow INPUT_CHECK {
     ch_bam.dump ( tag: 'ch_bam' )
     ch_sj_out_tab.dump ( tag: 'ch_sj_out_tab' )
     ch_reads_per_gene.dump ( tag: 'ch_reads_per_gene' )
-    ch_chimeric_junction.dump ( tag: 'ch_chimeric_junction' )
+    ch_chimeric_out_junction.dump ( tag: 'ch_chimeric_out_junction' )
     ch_class_input.dump ( tag: 'ch_class_input' )
     ch_glm_output.dump ( tag: 'ch_glm_output' )
 
@@ -106,7 +106,7 @@ workflow INPUT_CHECK {
     bam                   = ch_bam
     sj_out_tab            = ch_sj_out_tab
     reads_per_gene        = ch_reads_per_gene
-    chimeric_out_junction = chimeric_junction 
+    chimeric_out_junction = ch_chimeric_out_junction 
     // SICILIAN output
     class_input           = ch_class_input
     glm_output            = ch_glm_output
