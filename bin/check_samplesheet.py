@@ -5,6 +5,16 @@ import sys
 import errno
 import argparse
 
+FASTQ_COLUMNS = "fastq_1,fastq_2"
+FASTQ_COLUMNS_LIST = FASTQ_COLUMNS.split(",")
+STAR_COLUMNS = "bam,sj_out_tab,reads_per_gene,chimeric_junction"
+STAR_COLUMNS_LIST = STAR_COLUMNS.split(",")
+CLASSINPUT_COL = "class_input"
+GLM_COL = "glm_output"
+
+SKIP_STAR_COLUMNS = STAR_COLUMNS_LIST
+SKIP_CLASSINPUT_COLUMNS = STAR_COLUMNS_LIST + [CLASSINPUT_COL]
+SKIP_GLM_COLUMNS = SKIP_CLASSINPUT_COLUMNS + [GLM_COL]
 
 # Cribbed from https://github.com/nf-core/rnaseq/blob/master/bin/check_samplesheet.py
 def parse_args(args=None):
@@ -16,6 +26,24 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
+    parser.add_argument(
+        "--skip-star",
+        action="store_true",
+        help=f"Skipping alignment, so not looking for only '{FASTQ_COLUMNS}' columns. "
+        f"Looking for '{FASTQ_COLUMNS},{STAR_COLUMNS}' columns",
+    )
+    parser.add_argument(
+        "--skip-classinput",
+        action="store_true",
+        help=f"Skipping alignment, so not looking for only '{FASTQ_COLUMNS}' columns. "
+        f"Looking for '{FASTQ_COLUMNS},{STAR_COLUMNS},{CLASSINPUT_COL}' columns",
+    )
+    parser.add_argument(
+        "--skip-glm",
+        action="store_true",
+        help=f"Skipping alignment, so not looking for '{FASTQ_COLUMNS}' columns. "
+        f"Looking for '{FASTQ_COLUMNS},{STAR_COLUMNS},{CLASSINPUT_COL},{GLM_COL}' columns",
+    )
     return parser.parse_args(args)
 
 
@@ -36,7 +64,7 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_samplesheet(file_in, file_out):
+def check_samplesheet(file_in, file_out, skip_star, skip_classinput, skip_glm):
     """
     This function checks that the samplesheet follows the following structure:
 
@@ -51,19 +79,28 @@ def check_samplesheet(file_in, file_out):
     """
 
     sample_mapping_dict = {}
+
+    additional_cols = FASTQ_COLUMNS
+    if skip_star:
+        additional_cols += SKIP_STAR_COLUMNS
+    elif skip_classinput:
+        additional_cols += SKIP_CLASSINPUT_COLUMNS
+    elif skip_glm:
+        additional_cols += SKIP_GLM_COLUMNS
+
+    do_alignment = not (skip_star or skip_classinput or skip_glm)
+
     with open(file_in, "r") as fin:
 
         ## Check header
         MIN_COLS = 3
         HEADER = [
             "sample_id",
-            "fastq_1",
-            "fastq_2",
             "strandedness",
             "concatenation_id",
-        ]
+        ] + additional_cols
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
-        if header[: len(HEADER)] != HEADER:
+        if set(header) != set(HEADER):
             print(
                 f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}"
             )
@@ -90,7 +127,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample_id, fastq_1, fastq_2, strandedness, concatenation_id = lspl[
+            sample_id, strandedness, concatenation_id, *remaining_cols = lspl[
                 : len(HEADER)
             ]
             if sample_id:
@@ -100,16 +137,18 @@ def check_samplesheet(file_in, file_out):
                 print_error("Sample entry has not been specified!", "Line", line)
 
             ## Check FastQ file extension
-            for fastq in [fastq_1, fastq_2]:
-                if fastq:
-                    if fastq.find(" ") != -1:
+            for col in remaining_cols:
+                if col:
+                    if col.find(" ") != -1:
                         print_error("FastQ file contains spaces!", "Line", line)
-                    if not fastq.endswith(".fastq.gz") and not fastq.endswith(".fq.gz"):
-                        print_error(
-                            "FastQ file does not have extension '.fastq.gz' or '.fq.gz'!",
-                            "Line",
-                            line,
-                        )
+                    if do_alignment:
+                        # If doing alignment, then the remaining columns can only be fastqs
+                        if not col.endswith(".fastq.gz") and not col.endswith(".fq.gz"):
+                            print_error(
+                                "FastQ file does not have extension '.fastq.gz' or '.fq.gz'!",
+                                "Line",
+                                line,
+                            )
 
             ## Check strandedness
             strandednesses = ["unstranded", "forward", "reverse"]
@@ -129,10 +168,28 @@ def check_samplesheet(file_in, file_out):
 
             ## Auto-detect paired-end/single-end
             sample_info = []  ## [single_end, fastq_1, fastq_2, strandedness]
-            if sample_id and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, strandedness, concatenation_id]
-            elif sample_id and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, strandedness, concatenation_id]
+            if (
+                sample_id and do_alignment and remaining_cols[0] and remaining_cols[1]
+            ):  ## Paired-end short reads
+                sample_info = [
+                    "0",
+                    strandedness,
+                    concatenation_id,
+                    remaining_cols[0],
+                    remaining_cols[1],
+                ]
+            elif (
+                sample_id and do_alignment and remaining_cols[0]
+            ):  ## Single-end short reads
+                sample_info = [
+                    "1",
+                    strandedness,
+                    concatenation_id,
+                    remaining_cols[0],
+                    "",
+                ]
+            elif sample_id:
+                sample_info = ["1", strandedness, concatenation_id] + remaining_cols
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
@@ -155,11 +212,10 @@ def check_samplesheet(file_in, file_out):
                     [
                         "sample_id",
                         "single_end",
-                        "fastq_1",
-                        "fastq_2",
                         "strandedness",
                         "concatenation_id",
                     ]
+                    + additional_cols
                 )
                 + "\n"
             )
@@ -195,7 +251,9 @@ def check_samplesheet(file_in, file_out):
 
 def main(args=None):
     args = parse_args(args)
-    check_samplesheet(args.FILE_IN, args.FILE_OUT)
+    check_samplesheet(
+        args.FILE_IN, args.FILE_OUT, args.skip_star, args.skip_classinput, args.skip_glm
+    )
 
 
 if __name__ == "__main__":

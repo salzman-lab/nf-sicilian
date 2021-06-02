@@ -19,12 +19,10 @@ workflow INPUT_CHECK {
         exit 1, 'No input data specified with --input or --input_csv. Exiting!' 
     }
 
-    star_output_params       = params.star_bam       && params.star_sj_out_tab       && params.reads_per_gene            && params.star_chimeric_junction
-    star_output_params_paths = params.star_bam_paths && params.star_sj_out_tab_paths && params.star_reads_per_gene_paths && params.star_chimeric_junction_paths
 
-    run_align = ! (star_output_params || star_output_params_paths)
-    run_glm = !( params.sicilian_glm_output_paths || params.sicilian_glm_output )
-    run_class_input = !( params.sicilian_class_input_paths || params.sicilian_class_input )
+    run_align = !params.skip_star
+    run_class_input = !params.skip_classinput
+    run_glm = !params.skip_glm
 
     /*
     * Initialize channels as empty
@@ -44,67 +42,53 @@ workflow INPUT_CHECK {
     * Create a channel for input read files
     */
     single_end = params.single_end.toBoolean()
-    if (run_align) {
         // No star
-        if (params.input_paths) {
-            if (params.single_end) {
-                ch_reads = Channel.from(params.input_paths)
-                    .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                    .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
-                    .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
-            } else {
-                ch_reads = Channel.from(params.input_paths)
-                    .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
-                    .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
-                    // .map { it -> println "${it[0]}: it.getClass(): ${it.getClass()}" }
-                    // .map { it -> println "${it[0]}: it[0].getClass(): ${it[0].getClass()}" }
-                    // .map { it -> println "${it[0]}: it[1].getClass(): ${it[1].getClass()}" }
-                    // .map { it -> println "${it[0]}: it[1][1].getClass(): ${it[1][1].getClass()}" }
-                    .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
-            }
-        } else if (params.input) {
-            ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
-                .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
+    if (params.input_paths) {
+        if (params.single_end) {
+            ch_reads = Channel.from(params.input_paths)
+                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
+                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
                 .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
-        } else if (params.input_csv) {
-            samplesheet = file(params.input_csv, checkIfExists: true) 
-            SAMPLESHEET_CHECK ( samplesheet )
-                .splitCsv ( header:true, sep:',' )
+        } else {
+            ch_reads = Channel.from(params.input_paths)
+                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
+                .ifEmpty { exit 1, 'params.input_paths was empty - no input files supplied' }
+                // .map { it -> println "${it[0]}: it.getClass(): ${it.getClass()}" }
+                // .map { it -> println "${it[0]}: it[0].getClass(): ${it[0].getClass()}" }
+                // .map { it -> println "${it[0]}: it[1].getClass(): ${it[1].getClass()}" }
+                // .map { it -> println "${it[0]}: it[1][1].getClass(): ${it[1][1].getClass()}" }
+                .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
+        }
+    } else if (params.input) {
+        ch_reads = Channel.fromFilePairs(params.input, size: params.single_end ? 1 : 2)
+            .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
+            .map { it -> create_fastq_channels_from_filepairs( it, single_end, params.stranded) }
+    } else if (params.input_csv) {
+        samplesheet = file(params.input_csv, checkIfExists: true) 
+        ch_samplesheet = SAMPLESHEET_CHECK ( samplesheet )
+            .splitCsv ( header:true, sep:',' )
+        if (run_align) { 
+            ch_samplesheet
                 .map { create_fastq_channels(it) }
                 .set { ch_reads }
+        } else {
+           ch_samplesheet
+                .map { create_star_output_channels(it) }
+                .set { ch_samplesheet_star_output }
+            ch_bam = ch_samplesheet_star_output.map{ it.bam }
+            ch_sj_out_tab = ch_samplesheet_star_output.map{ it.sj_out_tab }
+            ch_reads_per_gene = ch_samplesheet_star_output.map{ it.reads_per_gene }
+            ch_chimeric_junction = ch_samplesheet_star_output.map{ it.chimeric_junction }
         }
-    } else {
-        if (params.star_bam_paths) {
-            ch_bam = Channel.from(params.star_bam_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.star_bam_paths was empty - no input files supplied' }
-        }   
-        if (params.star_sj_out_tab_paths) {
-            ch_sj_out_tab = Channel.from(params.star_sj_out_tab_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.star_sj_out_tab_paths was empty - no input files supplied' }
+        if (!run_class_input) {
+            ch_samplesheet
+                .map { create_class_input_channels(it) }
+                .set { ch_class_input }
         }
-        if (params.star_reads_per_gene_paths) {
-            ch_reads_per_gene = Channel.from(params.star_reads_per_gene_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.star_reads_per_gene_paths was empty - no input files supplied' }
-        }
-        if (params.star_chimeric_junction_paths) {
-            ch_chimeric_junction = Channel.from(params.star_chimeric_junction_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.star_chimeric_junction_paths was empty - no input files supplied' }
-        }
-        if (params.sicilian_class_input_paths) {
-            ch_class_input = Channel.from(params.sicilian_class_input_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.ch_class_input was empty - no input files supplied' }
-                .dump ( tag: 'ch_class_input' )
-        }
-        if (params.sicilian_glm_output_paths) {
-            ch_glm_output = Channel.from(params.sicilian_glm_output_paths)
-                .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-                .ifEmpty { exit 1, 'params.sicilian_glm_output_paths was empty - no input files supplied' }
-                .dump ( tag: 'ch_glm_output' )
+        if (!run_glm) {
+            ch_samplesheet
+                .map { create_glm_output_channels(it) }
+                .set { ch_glm_output }
         }
     }
 
@@ -119,7 +103,6 @@ workflow INPUT_CHECK {
     println "run_align: ${run_align}"
     println "run_class_input: ${run_class_input}"
     println "run_glm: ${run_glm}"
-
 
 
     emit:
@@ -160,6 +143,54 @@ def create_fastq_channels(LinkedHashMap row) {
     }
     return array
 }
+
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_star_output_channels(LinkedHashMap row) {
+    def meta = [:]
+    meta.id                = row.sample_id
+    meta.single_end        = row.single_end.toBoolean()
+    meta.strandedness      = row.strandedness
+    meta.concatenation_id  = row.concatenation_id
+    meta.bam               = row.bam
+    meta.sj_out_tab        = row.sj_out_tab
+    meta.reads_per_gene    = row.reads_per_gene
+    meta.chimeric_junction = row.chimeric_junction
+
+    return meta
+}
+
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_class_input_channels(LinkedHashMap row) {
+    def meta = [:]
+    meta.id                = row.sample_id
+    meta.single_end        = row.single_end.toBoolean()
+    meta.strandedness      = row.strandedness
+    meta.concatenation_id  = row.concatenation_id
+
+    def array = []
+    if (!file(row.class_input).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Class input file does not exist!\n${row.class_input}"
+    }
+    array = [ meta, row.class_input ]
+    return meta
+}
+
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_glm_output_channels(LinkedHashMap row) {
+    def meta = [:]
+    meta.id                = row.sample_id
+    meta.single_end        = row.single_end.toBoolean()
+    meta.strandedness      = row.strandedness
+    meta.concatenation_id  = row.concatenation_id
+
+    def array = []
+    if (!file(row.glm_output).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> GLM output file does not exist!\n${row.glm_output}"
+    }
+    array = [ meta, row.glm_output ]
+    return meta
+}
+
 
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]

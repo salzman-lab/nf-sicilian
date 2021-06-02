@@ -18,13 +18,22 @@ process SAMPLESHEET_CHECK {
 
     input:
     path samplesheet
+    val skip_star
+    val skip_classinput
+    val skip_glm
 
     output:
     path '*.csv'
 
     script:  // This script is bundled with the pipeline, in nf-core/rnaseq/bin/
+    def star_flag = skip_star ? '--skip-star' : ''
+    def classinput_flag = skip_classinput ? '--skip-classinput' : ''
+    def glm_flag = skip_glm ? '--skip-glm' : ''
     """
     check_samplesheet.py \\
+        ${star_flag} \\
+        ${classinput_flag} \\
+        ${glm_flag} \\
         $samplesheet \\
         samplesheet.valid.csv
     """
