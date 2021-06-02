@@ -121,5 +121,5 @@ workflow SICILIAN {
 
 
     emit:
-    software_versions     = ch_software_versions         // path: *.version.txt
+    version     = ch_software_versions         // path: *.version.txt
 }

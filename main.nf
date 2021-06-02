@@ -270,6 +270,7 @@ workflow {
         INPUT_CHECK.out.class_input,
         INPUT_CHECK.out.glm_output,
     )
+    ch_software_versions = ch_software_versions.mix(SICILIAN.out.version.ifEmpty(null))
 
 
     ch_software_versions
@@ -297,7 +298,7 @@ workflow {
         ch_workflow_summary = Channel.value(workflow_summary)
 
         MULTIQC (
-            ch_multiqc_config,
+            ch_multiqc_config.collect(),
             ch_multiqc_custom_config.collect().ifEmpty([]),
             GET_SOFTWARE_VERSIONS.out.yaml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
