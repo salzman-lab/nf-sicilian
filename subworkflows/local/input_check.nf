@@ -37,7 +37,7 @@ workflow INPUT_CHECK {
     * Create a channel for input read files
     */
     single_end = params.single_end.toBoolean()
-        // No star
+    // No star
     if (params.input_paths) {
         if (params.single_end) {
             ch_reads = Channel.from(params.input_paths)
