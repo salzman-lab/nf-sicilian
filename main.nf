@@ -99,7 +99,7 @@ ch_domain = file(params.domain, checkIfExists: true)
 ========================================================================================
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 
@@ -302,7 +302,7 @@ workflow {
             ch_multiqc_custom_config.collect().ifEmpty([]),
             GET_SOFTWARE_VERSIONS.out.yaml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-            ch_star_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_star_multiqc.collect{it[1]}.ifEmpty([]).view(),
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
