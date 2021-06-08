@@ -56,15 +56,17 @@ workflow PREPARE_GENOME {
     //
     ch_star_index   = Channel.empty()
     ch_star_version = Channel.empty()
-    if (params.star_index) {
-        if (params.star_index.endsWith('.tar.gz') || params.star_index.endsWith('.tgz')) {
-            ch_star_index = UNTAR_STAR_INDEX ( params.star_index ).untar
+    if (!params.skip_star) {
+        if (params.star_index) {
+            if (params.star_index.endsWith('.tar.gz') || params.star_index.endsWith('.tgz')) {
+                ch_star_index = UNTAR_STAR_INDEX ( params.star_index ).untar
+            } else {
+                ch_star_index = file(params.star_index)
+            }
         } else {
-            ch_star_index = file(params.star_index)
+            ch_star_index   = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
+            ch_star_version = STAR_GENOMEGENERATE.out.version
         }
-    } else {
-        ch_star_index   = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
-        ch_star_version = STAR_GENOMEGENERATE.out.version
     }
 
     //
