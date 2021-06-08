@@ -26,7 +26,7 @@ jobs:
         nxf_ver: ['21.04.0', '']
         test_profile: [
           'test', 
-          'test_samplesheet', 
+#          'test_samplesheet', 
           'test_samplesheet --skip_star', 
           'test_samplesheet --skip_star --skip_classinput', 
           'test_samplesheet --skip_star --skip_classinput --skip_glm',
