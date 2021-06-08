@@ -116,16 +116,25 @@ def check_samplesheet(file_in, file_out, skip_star, skip_classinput, skip_glm):
                 "ERROR: Please check samplesheet header:"
                 f"\n-> Duplicate columns found: {','.join(duplicates)}"
             )
-        if header_set != HEADER_SET:
+        if len(header_set) < len(HEADER_SET):
             expected_columns = sorted(list(HEADER_SET.difference(header_set)))
             unexpected_columns = sorted(list(header_set.difference(HEADER_SET)))
+            if expected_columns:
+                expected_columns_str = f"\n-> Expected {','.join(expected_columns)} columns but did not see them"
+            else:
+                expected_columns_str = ""
+            if unexpected_columns:
+                unexpected_columns_str = f"\n-> Saw {','.join(unexpected_columns)} columns but but did not expect them, ignoring"
+            else:
+                unexpected_columns_str = ""
             print(
                 f"ERROR: Please check samplesheet header:"
-                f"\n-> Expected {','.join(expected_columns)} columns but did not see them"
-                f"\n-> Saw {','.join(unexpected_columns)} columns but but did not expect them"
-                f"\nParameters: skip_star={skip_star}, skip_classinput={skip_classinput}, skip_glm={skip_glm}"
+                + expected_columns_str
+                + unexpected_columns_str
+                + f"\nParameters: skip_star={skip_star}, skip_classinput={skip_classinput}, skip_glm={skip_glm}"
             )
-            sys.exit(1)
+            if expected_columns:
+                sys.exit(1)
 
         ## Check sample entries
         for line in fin:
