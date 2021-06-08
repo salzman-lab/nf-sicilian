@@ -27,6 +27,26 @@ results         # Finished results (configurable, see below)
 # Other nextflow hidden files, eg. history of pipeline runs and old logs.
 ```
 
+### Samplesheet input
+
+The columns `sample_id,strandedness,concatenation_id` are required for all samplesheet input. If starting from the very first alignment step, then `fastq_1` and `fastq_2` are both required.
+
+[Example samplesheet](https://github.com/czbiohub/test-datasets/blob/olgabot/sicilian/testdata/maca_bladder_samplesheet.csv)
+
+### Skipping steps
+
+#### Start from Class Input: `--skip_star`
+
+This skips the `STAR_ALIGN` step and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction"` in the csv file.
+
+#### Start from GLM: `--skip_star --skip_classinput`
+
+This skips the `STAR_ALIGN` and `SICILIAN_CLASSINPUT` steps and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction,class_input"` in the csv file. That means the first data processing step to run is `SICILIAN_GLM`. Both the `--skip_star --skip_classinput` flags are required.
+
+#### Start from Consolidate: `--skip_star  --skip_classinput --skip_glm`
+
+This skips the `STAR_ALIGN`, `SICILIAN_CLASSINPUT`, and `SICILIAN_GLM` steps and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction,class_input,glm_output"` in the csv file. All three of the `--skip_star --skip_classinput --skip_glm` flags are required.
+
 ### Updating the pipeline
 
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:

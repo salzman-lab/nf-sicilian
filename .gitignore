@@ -15,4 +15,4 @@ execution_timeline*.html*
 settings.json
 
 # Weirdly made s3 path
-'s3:/'
+s3:/

@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
 import argparse
-from collections import defaultdict
-import pandas as pd
+import os
 import pickle
-import numpy as np
-from glob import glob
 import time
+from collections import defaultdict
+from glob import glob
+from itertools import groupby
+
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
-from datetime import timedelta
 
 
 def ensembl_name_map(gtf_file):
@@ -199,56 +201,68 @@ def main():
     all_dfs = []
     # dp_dict = get_names(args.data_paths, args.prefix2)
     # print("dp_dict", dp_dict)
+    names_filenames = zip(args.sample_names, args.class_inputs)
+    names_filenames = sorted(names_filenames, key=lambda x: x[0])
 
-    for sample_name, filename in tqdm(zip(args.sample_names, args.class_inputs)):
-        df = pd.read_csv(
-            filename,
-            dtype={
-                "p_predicted_glmnet": "float16",
-                "p_predicted_glmnet_corrected": "float16",
-                "chrR1A": "category",
-                "chrR1B": "category",
-                "readClassR1": "category",
-                "geneR1A_uniq": "category",
-                "geneR1A": "category",
-                "geneR1B": "category",
-                "junc_cdf_glmnet": "float16",
-                "Organ": "category",
-                "splice_ann": "bool",
-                "both_ann": "bool",
-                "exon_annR1A": "bool",
-                "exon_annR1B": bool,
-            },
-            usecols=[
-                "refName_newR1",
-                "UMI",
-                "barcode",
-                "geneR1A_uniq",
-                "juncPosR1A",
-                "juncPosR1B",
-                "chrR1A",
-                "chrR1B",
-                "NHR1A",
-                "fileTypeR1",
-            ],
-            sep="\t",
-        )
+    for concat_name, group in tqdm(groupby(names_filenames, key=lambda x: x[0])):
+        concat_group_dfs = []
+        csv_names = []
+        for name, filename in group:
+            csv_names.append(os.path.basename(filename))
+            df = pd.read_csv(
+                filename,
+                dtype={
+                    "p_predicted_glmnet": "float16",
+                    "p_predicted_glmnet_corrected": "float16",
+                    "chrR1A": "category",
+                    "chrR1B": "category",
+                    "readClassR1": "category",
+                    "geneR1A_uniq": "category",
+                    "geneR1A": "category",
+                    "geneR1B": "category",
+                    "junc_cdf_glmnet": "float16",
+                    "Organ": "category",
+                    "splice_ann": "bool",
+                    "both_ann": "bool",
+                    "exon_annR1A": "bool",
+                    "exon_annR1B": bool,
+                },
+                usecols=[
+                    "refName_newR1",
+                    "UMI",
+                    "barcode",
+                    "geneR1A_uniq",
+                    "juncPosR1A",
+                    "juncPosR1B",
+                    "chrR1A",
+                    "chrR1B",
+                    "NHR1A",
+                    "fileTypeR1",
+                ],
+                sep="\t",
+            )
+            concat_group_dfs.append(df)
 
-        df.reset_index(drop=True, inplace=True)
-        df = process_lane(
+        # After all the dataframes for one concatention group are read, then process this lane
+        concat_group_df = pd.concat(concat_group_dfs)
+
+        concat_group_df.reset_index(drop=True, inplace=True)
+        concat_group_df = process_lane(
             df,
             inc_refNames,
             meta_df,
             exon_bounds,
             splices,
-            sample_name,
+            concat_name,
             args.include_meta,
         )
-        print(df.columns)
-        df["channel"] = sample_name
-        print(f"processed lane: {sample_name}")
-        print("df.shape", df.shape)
-        all_dfs.append(df)
+        print(concat_group_df.columns)
+        concat_group_df["channel"] = concat_name
+        print(f"processed sample: {concat_name}")
+        print(f"Sample: {concat_name} contained files:")
+        print("\t" + "\n\t".join(csv_names))
+        print("concat_group_df.shape", concat_group_df.shape)
+        all_dfs.append(concat_group_df)
 
     df = pd.concat(all_dfs)
 

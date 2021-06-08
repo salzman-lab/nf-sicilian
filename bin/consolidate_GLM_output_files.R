@@ -10,11 +10,10 @@ directory = args[1]
 run = args[2]     #TS_pilot_10X_withinbam          
 is.SE = args[3]   #run = "TS_pilot_10X_withinbam"
 #################### Inputs (usually should not be changed unles the format of the file locations have changed##########################
-#directory = paste("/oak/stanford/groups/horence/Roozbeh/single_cell_project/output/",run,"/",sep = "")
-consolidated_list_name = paste(run,"GLM_outputs_consolidated.txt",sep = "_")
+consolidated_list_name = "GLM_outputs_consolidated.txt"
 ###################################################
 
-list_files = list.files(directory, pattern = "GLM_output.txt", all.files = TRUE,recursive = TRUE)  # the list of all GLM output files
+list_files = list.files(directory, pattern = "*GLM_output.txt", all.files = TRUE,recursive = TRUE)  # the list of all GLM output files
 consolidated_list = data.table()
 
 

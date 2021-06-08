@@ -10,9 +10,6 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -390,32 +387,34 @@
         "star_chimeric_junction": {
             "type": "string"
         },
-        "star_bam_paths": {
-            "type": "string"
-        },
-        "star_sj_out_tab_paths": {
-            "type": "string"
-        },
-        "star_reads_per_gene_paths": {
-            "type": "string"
-        },
-        "star_chimeric_junction_paths": {
-            "type": "string"
-        },
         "sicilian_class_input": {
-            "type": "string"
-        },
-        "sicilian_class_input_paths": {
             "type": "string"
         },
         "sicilian_glm_output": {
             "type": "string"
         },
-        "sicilian_glm_output_paths": {
-            "type": "string"
-        },
         "seq_center": {
             "type": "string"
+        },
+        "input_csv": {
+            "type": "string",
+            "default": "null"
+        },
+        "multiqc_title": {
+            "type": "string",
+            "default": "null"
+        },
+        "summary_params": {
+            "type": "string"
+        },
+        "skip_star": {
+            "type": "boolean"
+        },
+        "skip_classinput": {
+            "type": "boolean"
+        },
+        "skip_glm": {
+            "type": "boolean"
         }
     }
 }
