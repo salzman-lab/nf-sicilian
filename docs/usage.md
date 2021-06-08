@@ -31,7 +31,6 @@ results         # Finished results (configurable, see below)
 
 The columns `sample_id,strandedness,concatenation_id` are required for all samplesheet input. If starting from the very first alignment step, then `fastq_1` and `fastq_2` are both required.
 
-
 [Example samplesheet](https://github.com/czbiohub/test-datasets/blob/olgabot/sicilian/testdata/maca_bladder_samplesheet.csv)
 
 ### Skipping steps
@@ -40,7 +39,6 @@ The columns `sample_id,strandedness,concatenation_id` are required for all sampl
 
 This skips the `STAR_ALIGN` step and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction"` in the csv file.
 
-
 #### Start from GLM: `--skip_star --skip_classinput`
 
 This skips the `STAR_ALIGN` and `SICILIAN_CLASSINPUT` steps and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction,class_input"` in the csv file. That means the first data processing step to run is `SICILIAN_GLM`. Both the `--skip_star --skip_classinput` flags are required.
@@ -48,7 +46,6 @@ This skips the `STAR_ALIGN` and `SICILIAN_CLASSINPUT` steps and requires the col
 #### Start from Consolidate: `--skip_star  --skip_classinput --skip_glm`
 
 This skips the `STAR_ALIGN`, `SICILIAN_CLASSINPUT`, and `SICILIAN_GLM` steps and requires the columns `"bam,sj_out_tab,reads_per_gene,chimeric_junction,class_input,glm_output"` in the csv file. All three of the `--skip_star --skip_classinput --skip_glm` flags are required.
-
 
 ### Updating the pipeline
 
