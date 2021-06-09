@@ -65,13 +65,13 @@ process SICILIAN_CONSOLIDATE {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     def input_path = './'
     def run_name = './'
-    def tenx = params.tenx ? "1" : "0"
+    def single_end = (params.single_end || params.tenx || (!params.smartseq2)) ? '1' : '0'
     """
     ls -lha
     consolidate_GLM_output_files.R \\
         ${input_path} \\
         ${run_name} \\
-        ${tenx} \\
+        ${single_end} \\
         $options.args
 
     ls -lha

@@ -80,20 +80,20 @@ postprocess_model_SS <- function(consolidated_GLM) {
 args <- commandArgs(trailingOnly = TRUE)
 directory <- args[1]
 run <- args[2] # TS_pilot_10X_withinbam
-exon_pickle <- args[3]
-splice_pickle <- args[4]
-is.SE <- args[5] # run = "TS_pilot_10X_withinbam"
+is.SE <- args[3]
 #################### Inputs (usually should not be changed unles the format of the file locations have changed##########################
 consolidated_list_name <- "GLM_outputs_consolidated.txt"
 ###################################################
 
-list_files <- list.files(directory, pattern = "*GLM_output.txt", all.files = TRUE, recursive = TRUE) # the list of all GLM output files
+# the list of all GLM output files
+glm_output_files <- list.files(directory, pattern = "*GLM_output.txt", all.files = TRUE, recursive = TRUE)
 consolidated_list <- data.table()
 
 
-for (counter in 1:length(list_files)) {
-  file_name <- list_files[[counter]]
-  sample_name <- strsplit(file_name, split = "/", fixed = TRUE)[[1]][1] # the name of the sample will be added as a column
+for (counter in 1:length(glm_output_files)) {
+  file_name <- glm_output_files[[counter]]
+  # the name of the sample will be added as a column
+  sample_name <- strsplit(file_name, split = "/", fixed = TRUE)[[1]][1]
   print(file_name)
   if (is.SE == 1) {
     # "frac_multimapping"

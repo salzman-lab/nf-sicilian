@@ -103,18 +103,24 @@ workflow SICILIAN {
         .collect()
         .dump( tag: 'class_input_files_collected' )
 
-    SICILIAN_PROCESS_CI_10X (
-        ch_process_ci_concatenation_ids,
-        ch_process_ci_class_inputs,
-        gtf,
-        exon_bounds,
-        splices,
-    )
-    ch_software_versions = ch_software_versions.mix(SICILIAN_PROCESS_CI_10X.out.version.ifEmpty(null))
+    if (params.tenx || (!params.smartseq2)) {
+            SICILIAN_PROCESS_CI_10X (
+            ch_process_ci_concatenation_ids,
+            ch_process_ci_class_inputs,
+            gtf,
+            exon_bounds,
+            splices,
+        )
+        ch_software_versions = ch_software_versions.mix(SICILIAN_PROCESS_CI_10X.out.version.ifEmpty(null))
+        ch_sicilian_junctions_tsv = SICILIAN_PROCESS_CI_10X.out.sicilian_junctions_tsv
+    } else {
+        // Set an empty sicilian junctions file
+        ch_sicilian_junctions_tsv = Channel.empty()
+    }
 
 
     SICILIAN_POSTPROCESS (
-        SICILIAN_PROCESS_CI_10X.out.sicilian_junctions_tsv,
+        ch_sicilian_junctions_tsv,
         SICILIAN_CONSOLIDATE.out.glm_consolidated
     )
     ch_software_versions = ch_software_versions.mix(SICILIAN_POSTPROCESS.out.version.ifEmpty(null))
