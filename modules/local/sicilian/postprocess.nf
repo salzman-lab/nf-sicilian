@@ -66,11 +66,13 @@ process SICILIAN_POSTPROCESS {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     def output_filename = "postprocessed.txt"
     def run_name = './'
+    def single_end = (params.single_end || params.tenx || (!params.smartseq2)) ? '1' : '0'
     """
     post_processing.R \\
         $glm_consolidated \\
         $sicilian_junctions_tsv \\
-        $output_filename
+        $output_filename \\
+        $single_end
     ls -lha
     Rscript -e 'cat(paste(packageVersion("data.table")))' > ${software}__r-data.table.version.txt
     """
