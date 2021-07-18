@@ -89,3 +89,10 @@ In addition, references of tools and data used in this pipeline are as follows:
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
 * [UMI-tools](https://github.com/CGATOxford/UMI-tools)
+
+
+## Smartseq2 run
+
+```bash
+nextflow run -profile czbiohub_aws . -c smartseq2_tsp14.conf
+```
