@@ -90,7 +90,6 @@ In addition, references of tools and data used in this pipeline are as follows:
 
 * [UMI-tools](https://github.com/CGATOxford/UMI-tools)
 
-
 ## Smartseq2 run
 
 ```bash
