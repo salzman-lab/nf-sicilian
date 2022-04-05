@@ -50,7 +50,7 @@ By default, the pipeline currently performs the following:
 * Sequencing quality control (`FastQC`)
 * Overall pipeline run summaries (`MultiQC`)
 
-## Documentation
+## Documentation 
 
 The nf-core/sicilian pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/sicilian/usage) and [output](https://nf-co.re/sicilian/output).
 
